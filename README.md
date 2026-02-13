@@ -1,0 +1,103 @@
+# ms-ringbuffer
+
+Lock-free, single-producer single-consumer (SPSC) ring buffer for C++17.
+
+Header-only. Cache-friendly. Generic over any trivially copyable type.
+
+## Features
+
+- `RingBuffer<T, Capacity, CacheLineSize>` template
+- Single-element API: `push()` / `pop()`
+- Bulk API: `write()` / `read()` / `peek()` / `skip()`
+- `ByteRingBuffer<N>` alias for byte-stream / IPC use
+- Cache-line-padded control block prevents false sharing (configurable: 64 or 128 bytes)
+- Designed for shared memory (contiguous layout, no pointers)
+- 157 unit tests including multi-threaded stress tests
+
+## Dependencies
+
+- **C++17** compiler (GCC 7+, Clang 5+, MSVC 2017+)
+- **CMake** 3.14+
+- **Python 3** (for build script, optional)
+- **Google Test** v1.14.0 (bundled as submodule under `test/vendor/`, only needed for tests)
+
+## Quick start
+
+```cpp
+#include <RingBuffer.h>
+
+ms::spsc::RingBuffer<int, 1024> rb;
+
+rb.push(42);
+
+int val;
+rb.pop(val);  // val == 42
+```
+
+## Building
+
+### Clone
+
+```bash
+# Library only (no tests):
+git clone <repo-url>
+
+# With tests:
+git clone --recursive <repo-url>
+```
+
+### Build script
+
+```bash
+python3 build.py              # build only
+python3 build.py -c           # clean build
+python3 build.py -t           # build + run tests
+python3 build.py -e           # build + examples
+python3 build.py -c -t -e     # clean build + tests + examples
+```
+
+### CMake directly
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+
+# Run tests:
+ctest --test-dir build --output-on-failure
+
+# Build examples:
+cmake -B build -DMS_RINGBUFFER_BUILD_EXAMPLES=ON
+cmake --build build -j$(nproc)
+```
+
+## Using as a submodule
+
+```bash
+git submodule add <repo-url> vendor/ms-ringbuffer
+```
+
+```cmake
+add_subdirectory(vendor/ms-ringbuffer)
+target_link_libraries(your_target PRIVATE ms-ringbuffer)
+```
+
+Tests and examples are not built when used as a submodule.
+
+## Project structure
+
+```
+inc/RingBuffer.h         # the library (single header)
+test/                    # unit tests (see test/README.md)
+example/                 # usage examples (see example/README.md)
+build.py                 # build script
+LICENSE                  # MIT
+```
+
+## Further reading
+
+- [test/README.md](test/README.md) - test organization and how to run
+- [example/README.md](example/README.md) - example programs
+
+## License
+
+MIT - see [LICENSE](LICENSE).
