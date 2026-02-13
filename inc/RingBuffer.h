@@ -24,13 +24,17 @@
 #include <cstring>
 #include <type_traits>
 
-// Library version.
-#define MS_RINGBUFFER_VERSION_MAJOR 1
-#define MS_RINGBUFFER_VERSION_MINOR 0
-#define MS_RINGBUFFER_VERSION_PATCH 0
-
 namespace ms::spsc
 {
+
+    // Library version — single source of truth.
+    struct Version
+    {
+        static constexpr uint8_t  major  = 1;
+        static constexpr uint8_t  minor  = 0;
+        static constexpr uint8_t  patch  = 0;
+        static constexpr uint32_t packed = (major << 16) | (minor << 8) | patch;
+    };
 
     // Lock-free Single-Producer Single-Consumer ring buffer.
     //

@@ -1,5 +1,7 @@
 # ms-ringbuffer
 
+![Build](https://github.com/Mrunmoy/ms-ringbuffer/actions/workflows/ci.yml/badge.svg)
+
 Lock-free, single-producer single-consumer (SPSC) ring buffer for C++17.
 
 Header-only. Cache-friendly. Generic over any trivially copyable type.

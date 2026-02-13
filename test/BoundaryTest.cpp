@@ -387,14 +387,15 @@ TEST(CacheLineSize, ControlBlockAlignment)
 }
 
 // ---------------------------------------------------------------------------
-// Version macros
+// Version
 // ---------------------------------------------------------------------------
 
-TEST(Version, MacrosDefined)
+TEST(Version, ConstexprsAccessible)
 {
-    EXPECT_GE(MS_RINGBUFFER_VERSION_MAJOR, 1);
-    EXPECT_GE(MS_RINGBUFFER_VERSION_MINOR, 0);
-    EXPECT_GE(MS_RINGBUFFER_VERSION_PATCH, 0);
+    EXPECT_EQ(ms::spsc::Version::major, 1);
+    EXPECT_EQ(ms::spsc::Version::minor, 0);
+    EXPECT_EQ(ms::spsc::Version::patch, 0);
+    EXPECT_EQ(ms::spsc::Version::packed, 0x010000u);
 }
 
 // ---------------------------------------------------------------------------

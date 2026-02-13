@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
 project(ms-ringbuffer
-    VERSION 1.0.0
     LANGUAGES CXX
     DESCRIPTION "Lock-free SPSC ring buffer (header-only, cache-friendly)"
 )
