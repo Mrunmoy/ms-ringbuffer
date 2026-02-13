@@ -9,6 +9,7 @@
 
 #include <RingBuffer.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <cstring>
@@ -32,7 +33,8 @@ protected:
     {
         using T = typename RB::value_type;
 
-        std::thread producer([&]() {
+        std::thread producer([&]()
+                             {
             for (uint32_t i = 0; i < count; ++i)
             {
                 T val = static_cast<T>(i);
@@ -40,13 +42,13 @@ protected:
                 {
                     // spin
                 }
-            }
-        });
+            } });
 
         std::vector<T> received;
         received.reserve(count);
 
-        std::thread consumer([&]() {
+        std::thread consumer([&]()
+                             {
             for (uint32_t i = 0; i < count; ++i)
             {
                 T val{};
@@ -55,8 +57,7 @@ protected:
                     // spin
                 }
                 received.push_back(val);
-            }
-        });
+            } });
 
         producer.join();
         consumer.join();
@@ -116,20 +117,21 @@ TEST_F(ConcurrentTest, SPSCStruct)
     static constexpr uint32_t kCount = 300000;
     ms::spsc::RingBuffer<Message, 1024> rb;
 
-    std::thread producer([&]() {
+    std::thread producer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             Message m{i, i * 7, static_cast<uint64_t>(i) * 13};
             while (!rb.push(m))
             {
             }
-        }
-    });
+        } });
 
     std::vector<Message> received;
     received.reserve(kCount);
 
-    std::thread consumer([&]() {
+    std::thread consumer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             Message m{};
@@ -137,8 +139,7 @@ TEST_F(ConcurrentTest, SPSCStruct)
             {
             }
             received.push_back(m);
-        }
-    });
+        } });
 
     producer.join();
     consumer.join();
@@ -162,7 +163,8 @@ TEST_F(ConcurrentTest, SPSCBulkBatches)
     static constexpr uint32_t kBatch = 16;
     ms::spsc::RingBuffer<uint32_t, 256> rb;
 
-    std::thread producer([&]() {
+    std::thread producer([&]()
+                         {
         uint32_t sent = 0;
         while (sent < kTotal)
         {
@@ -176,13 +178,13 @@ TEST_F(ConcurrentTest, SPSCBulkBatches)
                 // spin — not enough space
             }
             sent += toSend;
-        }
-    });
+        } });
 
     std::vector<uint32_t> received;
     received.reserve(kTotal);
 
-    std::thread consumer([&]() {
+    std::thread consumer([&]()
+                         {
         uint32_t got = 0;
         while (got < kTotal)
         {
@@ -196,8 +198,7 @@ TEST_F(ConcurrentTest, SPSCBulkBatches)
             for (uint32_t i = 0; i < toRead; ++i)
                 received.push_back(batch[i]);
             got += toRead;
-        }
-    });
+        } });
 
     producer.join();
     consumer.join();
@@ -219,19 +220,20 @@ TEST_F(ConcurrentTest, SPSCAsymmetricBatches)
     static constexpr uint32_t kReadBatch = 32;
     ms::spsc::RingBuffer<uint32_t, 512> rb;
 
-    std::thread producer([&]() {
+    std::thread producer([&]()
+                         {
         for (uint32_t i = 0; i < kTotal; ++i)
         {
             while (!rb.push(i))
             {
             }
-        }
-    });
+        } });
 
     std::vector<uint32_t> received;
     received.reserve(kTotal);
 
-    std::thread consumer([&]() {
+    std::thread consumer([&]()
+                         {
         uint32_t got = 0;
         while (got < kTotal)
         {
@@ -248,8 +250,7 @@ TEST_F(ConcurrentTest, SPSCAsymmetricBatches)
                     received.push_back(v);
                 got += toRead;
             }
-        }
-    });
+        } });
 
     producer.join();
     consumer.join();
@@ -270,19 +271,20 @@ TEST_F(ConcurrentTest, SPSCMinCapacity)
     static constexpr uint32_t kCount = 50000;
     ms::spsc::RingBuffer<uint32_t, 1> rb;
 
-    std::thread producer([&]() {
+    std::thread producer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             while (!rb.push(i))
             {
             }
-        }
-    });
+        } });
 
     std::vector<uint32_t> received;
     received.reserve(kCount);
 
-    std::thread consumer([&]() {
+    std::thread consumer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             uint32_t val;
@@ -290,8 +292,7 @@ TEST_F(ConcurrentTest, SPSCMinCapacity)
             {
             }
             received.push_back(val);
-        }
-    });
+        } });
 
     producer.join();
     consumer.join();
@@ -318,7 +319,8 @@ TEST_F(ConcurrentTest, SPSCLargeStruct)
     static constexpr uint32_t kCount = 50000;
     ms::spsc::RingBuffer<LargePayload, 64> rb;
 
-    std::thread producer([&]() {
+    std::thread producer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             LargePayload lp{};
@@ -328,12 +330,12 @@ TEST_F(ConcurrentTest, SPSCLargeStruct)
             while (!rb.push(lp))
             {
             }
-        }
-    });
+        } });
 
     std::atomic<uint32_t> errors{0};
 
-    std::thread consumer([&]() {
+    std::thread consumer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             LargePayload lp{};
@@ -355,8 +357,7 @@ TEST_F(ConcurrentTest, SPSCLargeStruct)
                     break;
                 }
             }
-        }
-    });
+        } });
 
     producer.join();
     consumer.join();
@@ -373,7 +374,8 @@ TEST_F(ConcurrentTest, SPSCByteStream)
     static constexpr uint32_t kMessages = 10000;
     ms::spsc::ByteRingBuffer<4096> rb;
 
-    std::thread producer([&]() {
+    std::thread producer([&]()
+                         {
         for (uint32_t i = 0; i < kMessages; ++i)
         {
             // Write length-prefixed message: [uint32_t len][uint32_t payload]
@@ -386,13 +388,13 @@ TEST_F(ConcurrentTest, SPSCByteStream)
             }
             rb.write(reinterpret_cast<const uint8_t *>(&len), sizeof(len));
             rb.write(reinterpret_cast<const uint8_t *>(&payload), sizeof(payload));
-        }
-    });
+        } });
 
     std::vector<uint32_t> received;
     received.reserve(kMessages);
 
-    std::thread consumer([&]() {
+    std::thread consumer([&]()
+                         {
         for (uint32_t i = 0; i < kMessages; ++i)
         {
             // Read length.
@@ -410,8 +412,7 @@ TEST_F(ConcurrentTest, SPSCByteStream)
             rb.read(reinterpret_cast<uint8_t *>(&payload), len);
 
             received.push_back(payload);
-        }
-    });
+        } });
 
     producer.join();
     consumer.join();
@@ -432,19 +433,20 @@ TEST_F(ConcurrentTest, SPSCCustomCacheLine128)
     static constexpr uint32_t kCount = 200000;
     ms::spsc::RingBuffer<uint32_t, 256, 128> rb;
 
-    std::thread producer([&]() {
+    std::thread producer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             while (!rb.push(i))
             {
             }
-        }
-    });
+        } });
 
     std::vector<uint32_t> received;
     received.reserve(kCount);
 
-    std::thread consumer([&]() {
+    std::thread consumer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             uint32_t val;
@@ -452,8 +454,7 @@ TEST_F(ConcurrentTest, SPSCCustomCacheLine128)
             {
             }
             received.push_back(val);
-        }
-    });
+        } });
 
     producer.join();
     consumer.join();
@@ -477,19 +478,20 @@ TEST_F(ConcurrentTest, SustainedThroughput)
     static constexpr uint32_t kCount = 1000000;
     ms::spsc::RingBuffer<uint32_t, 64> rb;
 
-    std::thread producer([&]() {
+    std::thread producer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             while (!rb.push(i))
             {
             }
-        }
-    });
+        } });
 
     uint32_t lastVal = 0;
     bool ordered = true;
 
-    std::thread consumer([&]() {
+    std::thread consumer([&]()
+                         {
         for (uint32_t i = 0; i < kCount; ++i)
         {
             uint32_t val;
@@ -499,8 +501,7 @@ TEST_F(ConcurrentTest, SustainedThroughput)
             if (val != i)
                 ordered = false;
             lastVal = val;
-        }
-    });
+        } });
 
     producer.join();
     consumer.join();
