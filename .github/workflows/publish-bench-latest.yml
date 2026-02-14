@@ -1,0 +1,70 @@
+name: Publish Bench Latest (Pages)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake python3
+
+      - name: Build and collect metrics
+        run: |
+          python3 build.py -b --collect-metrics --bench-time 0.2s --bench-reps 1
+
+      - name: Prepare Pages content
+        run: |
+          mkdir -p public/bench
+          cp build/bench/results.json public/bench/results.json
+          cp build/bench/size_report.txt public/bench/size_report.txt
+          cp build/bench/sizeof_report.txt public/bench/sizeof_report.txt
+
+          cat > public/index.html << 'EOF'
+          <!doctype html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <title>ms-ringbuffer Benchmark (Latest)</title>
+            </head>
+            <body>
+              <h1>ms-ringbuffer Benchmark (Latest)</h1>
+              <ul>
+                <li><a href="bench/results.json">results.json</a></li>
+                <li><a href="bench/size_report.txt">size_report.txt</a></li>
+                <li><a href="bench/sizeof_report.txt">sizeof_report.txt</a></li>
+              </ul>
+            </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
