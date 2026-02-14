@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
+
 project(ms-ringbuffer
     LANGUAGES CXX
     DESCRIPTION "Lock-free SPSC ring buffer (header-only, cache-friendly)"
@@ -20,5 +21,10 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     option(MS_RINGBUFFER_BUILD_EXAMPLES "Build examples" OFF)
     if(MS_RINGBUFFER_BUILD_EXAMPLES)
         add_subdirectory(example)
+    endif()
+
+    option(MS_RINGBUFFER_BUILD_BENCHMARKS "Build benchmarks" OFF)
+    if(MS_RINGBUFFER_BUILD_BENCHMARKS)
+        add_subdirectory(bench)
     endif()
 endif()
