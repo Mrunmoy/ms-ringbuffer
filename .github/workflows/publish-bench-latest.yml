@@ -40,23 +40,210 @@ jobs:
           cp build/bench/size_report.txt public/bench/size_report.txt
           cp build/bench/sizeof_report.txt public/bench/sizeof_report.txt
 
-          cat > public/index.html << 'EOF'
-          <!doctype html>
+          python3 - << 'PY'
+          import json
+          import os
+          import re
+
+          def read_text(path):
+              with open(path, "r", encoding="utf-8", errors="replace") as f:
+                  return f.read()
+
+          def parse_size_report(text):
+              # Expect:
+              # text data bss dec hex filename
+              # 1805 592 8 ...
+              lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+              header_idx = None
+              for i, ln in enumerate(lines):
+                  if ln.lower().startswith("text") and "bss" in ln.lower():
+                      header_idx = i
+                      break
+              if header_idx is None or header_idx + 1 >= len(lines):
+                  return None
+              parts = re.split(r"\s+", lines[header_idx + 1])
+              if len(parts) < 3:
+                  return None
+              return {"text": parts[0], "data": parts[1], "bss": parts[2]}
+
+          def fmt_mps(x):
+              return f"{x/1e6:.2f} M/s"
+
+          def fmt_gibs(x):
+              # bytes/sec -> GiB/sec
+              return f"{x/(1024**3):.2f} GiB/s"
+
+          results_path = os.path.join("public", "bench", "results.json")
+          size_path = os.path.join("public", "bench", "size_report.txt")
+          sizeof_path = os.path.join("public", "bench", "sizeof_report.txt")
+
+          results = json.loads(read_text(results_path))
+          size_txt = read_text(size_path)
+          sizeof_txt = read_text(sizeof_path)
+
+          size = parse_size_report(size_txt) or {"text": "?", "data": "?", "bss": "?"}
+
+          benches = results.get("benchmarks", [])
+          ctx = results.get("context", {})
+
+          # Build a table of interesting fields
+          rows = []
+          best_items = None
+          best_bytes = None
+
+          for b in benches:
+              name = b.get("name", "")
+              time_unit = b.get("time_unit", "")
+              real_time = b.get("real_time", None)
+              items = b.get("items_per_second", None)
+              bytes_ps = b.get("bytes_per_second", None)
+
+              time_str = ""
+              if real_time is not None and time_unit == "ns":
+                  time_str = f"{real_time:.2f} ns"
+              elif real_time is not None:
+                  time_str = f"{real_time:.2f} {time_unit}"
+
+              items_str = fmt_mps(items) if items else ""
+              bytes_str = fmt_gibs(bytes_ps) if bytes_ps else ""
+
+              if items:
+                  best_items = items if (best_items is None or items > best_items) else best_items
+              if bytes_ps:
+                  best_bytes = bytes_ps if (best_bytes is None or bytes_ps > best_bytes) else best_bytes
+
+              rows.append((name, time_str, items_str, bytes_str))
+
+          best_items_str = fmt_mps(best_items) if best_items else "n/a"
+          best_bytes_str = fmt_gibs(best_bytes) if best_bytes else "n/a"
+
+          host = ctx.get("host_name", "unknown")
+          date = ctx.get("date", "unknown")
+          num_cpus = ctx.get("num_cpus", "unknown")
+          mhz = ctx.get("mhz_per_cpu", "unknown")
+          scaling = ctx.get("cpu_scaling_enabled", None)
+          scaling_str = "enabled" if scaling else "disabled"
+
+          html = f"""<!doctype html>
           <html>
-            <head>
-              <meta charset="utf-8" />
-              <title>ms-ringbuffer Benchmark (Latest)</title>
-            </head>
-            <body>
-              <h1>ms-ringbuffer Benchmark (Latest)</h1>
-              <ul>
-                <li><a href="bench/results.json">results.json</a></li>
-                <li><a href="bench/size_report.txt">size_report.txt</a></li>
-                <li><a href="bench/sizeof_report.txt">sizeof_report.txt</a></li>
-              </ul>
-            </body>
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>ms-ringbuffer Benchmark (Latest)</title>
+            <style>
+              body {{
+                font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+                margin: 24px;
+                max-width: 1100px;
+              }}
+              h1 {{ margin: 0 0 8px 0; }}
+              .muted {{ color: #666; }}
+              .cards {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 12px;
+                margin: 16px 0 24px 0;
+              }}
+              .card {{
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 12px 14px;
+              }}
+              .card .label {{ color: #666; font-size: 12px; }}
+              .card .value {{ font-size: 20px; margin-top: 6px; }}
+              table {{
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10px 0 22px 0;
+              }}
+              th, td {{
+                border-bottom: 1px solid #eee;
+                text-align: left;
+                padding: 8px 10px;
+                vertical-align: top;
+                font-size: 14px;
+              }}
+              th {{ background: #fafafa; }}
+              code, pre {{
+                background: #f7f7f7;
+                border: 1px solid #eee;
+                border-radius: 8px;
+                padding: 10px;
+                display: block;
+                overflow-x: auto;
+              }}
+              a {{ text-decoration: none; }}
+              a:hover {{ text-decoration: underline; }}
+            </style>
+          </head>
+          <body>
+            <h1>ms-ringbuffer Benchmark (Latest)</h1>
+            <div class="muted">
+              Host: <b>{host}</b> • CPUs: <b>{num_cpus}</b> @ <b>{mhz} MHz</b> • CPU scaling: <b>{scaling_str}</b><br/>
+              Generated: <b>{date}</b>
+            </div>
+
+            <div class="cards">
+              <div class="card">
+                <div class="label">Best items/sec</div>
+                <div class="value">{best_items_str}</div>
+              </div>
+              <div class="card">
+                <div class="label">Best GiB/sec</div>
+                <div class="value">{best_bytes_str}</div>
+              </div>
+              <div class="card">
+                <div class="label">Code size (text)</div>
+                <div class="value">{size["text"]} bytes</div>
+              </div>
+              <div class="card">
+                <div class="label">RAM (data+bss)</div>
+                <div class="value">{size["data"]} + {size["bss"]} bytes</div>
+              </div>
+            </div>
+
+            <h2>Code/RAM footprint</h2>
+            <table>
+              <thead>
+                <tr><th>text</th><th>data</th><th>bss</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>{size["text"]}</td><td>{size["data"]}</td><td>{size["bss"]}</td></tr>
+              </tbody>
+            </table>
+
+            <h2>Benchmark summary</h2>
+            <table>
+              <thead>
+                <tr><th>Benchmark</th><th>Time</th><th>Items/sec</th><th>GiB/sec</th></tr>
+              </thead>
+              <tbody>
+          """
+
+          for (name, time_str, items_str, bytes_str) in rows:
+              html += f"<tr><td>{name}</td><td>{time_str}</td><td>{items_str}</td><td>{bytes_str}</td></tr>\n"
+
+          html += f"""
+              </tbody>
+            </table>
+
+            <h2>Raw files</h2>
+            <ul>
+              <li><a href="bench/results.json">results.json</a></li>
+              <li><a href="bench/size_report.txt">size_report.txt</a></li>
+              <li><a href="bench/sizeof_report.txt">sizeof_report.txt</a></li>
+            </ul>
+
+            <h2>sizeof report</h2>
+            <pre>{sizeof_txt}</pre>
+          </body>
           </html>
-          EOF
+          """
+
+          with open(os.path.join("public", "index.html"), "w", encoding="utf-8") as f:
+              f.write(html)
+          print("Wrote public/index.html")
+          PY
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
