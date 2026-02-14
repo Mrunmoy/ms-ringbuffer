@@ -3,7 +3,7 @@
 #include <atomic>
 #include <cstdint>
 
-#include "RingBuffer.h"
+#include "spsc/RingBuffer.h"
 
 namespace
 {

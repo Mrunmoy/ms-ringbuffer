@@ -7,7 +7,7 @@
 // These tests exercise various data types, buffer sizes, bulk operations,
 // and sustained high-throughput scenarios.
 
-#include <RingBuffer.h>
+#include <spsc/RingBuffer.h>
 
 #include <algorithm>
 #include <atomic>

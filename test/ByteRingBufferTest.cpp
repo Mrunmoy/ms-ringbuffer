@@ -3,7 +3,7 @@
 // Demonstrates the IPC / shared-memory use case where the ring buffer
 // carries raw bytes, typically length-prefixed frames or serialized messages.
 
-#include <RingBuffer.h>
+#include <spsc/RingBuffer.h>
 
 #include <cstdint>
 #include <cstring>

@@ -4,7 +4,7 @@
 // The ring buffer guarantees lock-free, wait-free data transfer
 // between exactly one producer and one consumer thread.
 
-#include <RingBuffer.h>
+#include <spsc/RingBuffer.h>
 
 #include <chrono>
 #include <cstdint>

@@ -3,7 +3,7 @@
 // Demonstrates that the ring buffer works with any trivially copyable struct,
 // including structs with arrays, nested structs, and packed layouts.
 
-#include <RingBuffer.h>
+#include <spsc/RingBuffer.h>
 
 #include <cstdint>
 #include <cstring>

@@ -1,7 +1,7 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "RingBuffer.h"
+#include "spsc/RingBuffer.h"
 
 namespace
 {

@@ -4,7 +4,7 @@
 // zero-count operations, counter wraparound, concurrent SPSC stress, and
 // custom cache line sizes.
 
-#include <RingBuffer.h>
+#include <spsc/RingBuffer.h>
 
 #include <cstdint>
 #include <thread>

@@ -6,6 +6,12 @@ Lock-free, single-producer single-consumer (SPSC) ring buffer for C++17.
 
 Header-only. Cache-friendly. Generic over any trivially copyable type.
 
+## Guided walkthrough
+
+If you want to understand how the SPSC ring buffer is implemented (and why each piece exists), start here:
+
+- [WalkthroughSPSC.md](WalkthroughSPSC.md)
+
 ## Benchmark dashboard
 
 Performance and footprint metrics are automatically generated on every
@@ -45,7 +51,7 @@ Includes:
 ## Quick start
 
 ``` cpp
-#include <RingBuffer.h>
+#include <spsc/RingBuffer.h>
 
 ms::spsc::RingBuffer<int, 1024> rb;
 
@@ -106,7 +112,7 @@ Tests and examples are not built when used as a submodule.
 
 ## Project structure
 
-    inc/RingBuffer.h         # the library (single header)
+    inc/spsc/RingBuffer.h    # the library (single header)
     test/                    # unit tests (see test/README.md)
     example/                 # usage examples (see example/README.md)
     build.py                 # build script

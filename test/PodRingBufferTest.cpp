@@ -3,7 +3,7 @@
 // Uses typed tests (TYPED_TEST_SUITE) to exercise the same logic across
 // int, uint8_t, uint32_t, uint64_t, float, double, and char.
 
-#include <RingBuffer.h>
+#include <spsc/RingBuffer.h>
 
 #include <cstdint>
 #include <limits>

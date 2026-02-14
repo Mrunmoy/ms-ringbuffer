@@ -3,7 +3,7 @@
 // Demonstrates: push/pop, bulk write/read, peek, skip, reset,
 // and the ByteRingBuffer alias for raw byte streams.
 
-#include <RingBuffer.h>
+#include <spsc/RingBuffer.h>
 
 #include <cstdint>
 #include <cstdio>
