@@ -131,111 +131,245 @@ jobs:
             <meta name="viewport" content="width=device-width, initial-scale=1" />
             <title>ms-ringbuffer Benchmark (Latest)</title>
             <style>
-              body {{
-                font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-                margin: 24px;
-                max-width: 1100px;
+              :root {{
+                --bg: #05070d;
+                --panel: rgba(12, 18, 35, 0.72);
+                --panel2: rgba(8, 12, 24, 0.72);
+                --text: #e6f1ff;
+                --muted: rgba(230, 241, 255, 0.65);
+                --line: rgba(0, 255, 209, 0.18);
+                --line2: rgba(102, 204, 255, 0.16);
+                --accent: #00ffd1;
+                --accent2: #66ccff;
+                --shadow: 0 10px 30px rgba(0,0,0,0.55);
+                --radius: 14px;
               }}
-              h1 {{ margin: 0 0 8px 0; }}
-              .muted {{ color: #666; }}
+
+              html, body {{
+                height: 100%;
+              }}
+
+              body {{
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+                margin: 0;
+                color: var(--text);
+                background:
+                  radial-gradient(1200px 600px at 20% 0%, rgba(0,255,209,0.12), transparent 55%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(102,204,255,0.10), transparent 55%),
+                  radial-gradient(800px 500px at 50% 100%, rgba(255,59,129,0.06), transparent 60%),
+                  linear-gradient(180deg, #03040a, #070a14 35%, #040611);
+                padding: 26px;
+              }}
+
+              .grid {{
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                background-image:
+                  linear-gradient(to right, rgba(0,255,209,0.05) 1px, transparent 1px),
+                  linear-gradient(to bottom, rgba(0,255,209,0.04) 1px, transparent 1px);
+                background-size: 44px 44px;
+                mask-image: radial-gradient(circle at 50% 20%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0) 85%);
+              }}
+
+              .wrap {{
+                max-width: 1180px;
+                margin: 0 auto;
+              }}
+
+              h1 {{
+                margin: 0 0 10px 0;
+                font-size: 34px;
+                letter-spacing: 0.4px;
+                text-transform: uppercase;
+              }}
+
+              h2 {{
+                margin: 26px 0 10px 0;
+                font-size: 18px;
+                letter-spacing: 0.6px;
+                text-transform: uppercase;
+                color: rgba(230,241,255,0.9);
+              }}
+
+              .muted {{
+                color: var(--muted);
+                line-height: 1.45;
+              }}
+
+              .divider {{
+                height: 1px;
+                background: linear-gradient(90deg, transparent, var(--line), transparent);
+                margin: 18px 0 6px 0;
+              }}
+
               .cards {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 12px;
-                margin: 16px 0 24px 0;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 14px;
+                margin: 18px 0 22px 0;
               }}
+
               .card {{
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                padding: 12px 14px;
+                background: linear-gradient(180deg, rgba(12,18,35,0.84), rgba(8,12,24,0.72));
+                border: 1px solid var(--line);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                padding: 14px 16px;
+                position: relative;
+                overflow: hidden;
               }}
-              .card .label {{ color: #666; font-size: 12px; }}
-              .card .value {{ font-size: 20px; margin-top: 6px; }}
+
+              .card::before {{
+                content: "";
+                position: absolute;
+                inset: 0;
+                background:
+                  radial-gradient(400px 120px at 10% 10%, rgba(0,255,209,0.12), transparent 60%),
+                  radial-gradient(380px 110px at 90% 20%, rgba(102,204,255,0.10), transparent 60%);
+                opacity: 0.9;
+                pointer-events: none;
+              }}
+
+              .card .label {{
+                position: relative;
+                color: var(--muted);
+                font-size: 12px;
+                letter-spacing: 0.6px;
+                text-transform: uppercase;
+              }}
+
+              .card .value {{
+                position: relative;
+                font-size: 26px;
+                margin-top: 8px;
+                color: var(--accent);
+                text-shadow: 0 0 12px rgba(0,255,209,0.18);
+              }}
+
               table {{
-                border-collapse: collapse;
                 width: 100%;
-                margin: 10px 0 22px 0;
+                border-collapse: collapse;
+                margin: 10px 0 18px 0;
+                background: rgba(8,12,24,0.55);
+                border: 1px solid var(--line2);
+                border-radius: var(--radius);
+                overflow: hidden;
+                box-shadow: var(--shadow);
               }}
+
               th, td {{
-                border-bottom: 1px solid #eee;
-                text-align: left;
-                padding: 8px 10px;
+                padding: 10px 12px;
+                border-bottom: 1px solid rgba(102,204,255,0.10);
+                font-size: 13px;
                 vertical-align: top;
-                font-size: 14px;
               }}
-              th {{ background: #fafafa; }}
-              code, pre {{
-                background: #f7f7f7;
-                border: 1px solid #eee;
-                border-radius: 8px;
-                padding: 10px;
-                display: block;
+
+              th {{
+                text-align: left;
+                color: rgba(230,241,255,0.85);
+                background: rgba(12,18,35,0.65);
+                letter-spacing: 0.6px;
+                text-transform: uppercase;
+              }}
+
+              tr:hover td {{
+                background: rgba(0,255,209,0.04);
+              }}
+
+              td {{
+                color: rgba(230,241,255,0.88);
+              }}
+
+              a {{
+                color: var(--accent2);
+                text-decoration: none;
+              }}
+
+              a:hover {{
+                text-decoration: underline;
+              }}
+
+              pre {{
+                background: rgba(8,12,24,0.65);
+                border: 1px solid var(--line2);
+                border-radius: var(--radius);
+                padding: 12px 14px;
                 overflow-x: auto;
+                box-shadow: var(--shadow);
+                color: rgba(230,241,255,0.88);
               }}
-              a {{ text-decoration: none; }}
-              a:hover {{ text-decoration: underline; }}
+
+              .raw ul {{
+                margin: 8px 0 0 18px;
+              }}
             </style>
           </head>
           <body>
-            <h1>ms-ringbuffer Benchmark (Latest)</h1>
-            <div class="muted">
-              Host: <b>{host}</b> • CPUs: <b>{num_cpus}</b> @ <b>{mhz} MHz</b> • CPU scaling: <b>{scaling_str}</b><br/>
-              Generated: <b>{date}</b>
-            </div>
+            <div class="grid"></div>
+            <div class="wrap">
+              <h1>ms-ringbuffer Benchmark (Latest)</h1>
+              <div class="muted">
+                Host: <b>{host}</b> • CPUs: <b>{num_cpus}</b> @ <b>{mhz} MHz</b> • CPU scaling: <b>{scaling_str}</b><br/>
+                Generated: <b>{date}</b>
+              </div>
 
-            <div class="cards">
-              <div class="card">
-                <div class="label">Best items/sec</div>
-                <div class="value">{best_items_str}</div>
-              </div>
-              <div class="card">
-                <div class="label">Best GiB/sec</div>
-                <div class="value">{best_bytes_str}</div>
-              </div>
-              <div class="card">
-                <div class="label">Code size (text)</div>
-                <div class="value">{size["text"]} bytes</div>
-              </div>
-              <div class="card">
-                <div class="label">RAM (data+bss)</div>
-                <div class="value">{size["data"]} + {size["bss"]} bytes</div>
-              </div>
-            </div>
+              <div class="divider"></div>
 
-            <h2>Code/RAM footprint</h2>
-            <table>
-              <thead>
-                <tr><th>text</th><th>data</th><th>bss</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>{size["text"]}</td><td>{size["data"]}</td><td>{size["bss"]}</td></tr>
-              </tbody>
-            </table>
+              <div class="cards">
+                <div class="card">
+                  <div class="label">Best items/sec</div>
+                  <div class="value">{best_items_str}</div>
+                </div>
+                <div class="card">
+                  <div class="label">Best GiB/sec</div>
+                  <div class="value">{best_bytes_str}</div>
+                </div>
+                <div class="card">
+                  <div class="label">Code size (text)</div>
+                  <div class="value">{size["text"]} bytes</div>
+                </div>
+                <div class="card">
+                  <div class="label">RAM (data+bss)</div>
+                  <div class="value">{size["data"]} + {size["bss"]} bytes</div>
+                </div>
+              </div>
 
-            <h2>Benchmark summary</h2>
-            <table>
-              <thead>
-                <tr><th>Benchmark</th><th>Time</th><th>Items/sec</th><th>GiB/sec</th></tr>
-              </thead>
-              <tbody>
+              <h2>Code/RAM footprint</h2>
+              <table>
+                <thead>
+                  <tr><th>text</th><th>data</th><th>bss</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>{size["text"]}</td><td>{size["data"]}</td><td>{size["bss"]}</td></tr>
+                </tbody>
+              </table>
+
+              <h2>Benchmark summary</h2>
+              <table>
+                <thead>
+                  <tr><th>Benchmark</th><th>Time</th><th>Items/sec</th><th>GiB/sec</th></tr>
+                </thead>
+                <tbody>
           """
 
           for (name, time_str, items_str, bytes_str) in rows:
               html += f"<tr><td>{name}</td><td>{time_str}</td><td>{items_str}</td><td>{bytes_str}</td></tr>\n"
 
           html += f"""
-              </tbody>
-            </table>
+                </tbody>
+              </table>
 
-            <h2>Raw files</h2>
-            <ul>
-              <li><a href="bench/results.json">results.json</a></li>
-              <li><a href="bench/size_report.txt">size_report.txt</a></li>
-              <li><a href="bench/sizeof_report.txt">sizeof_report.txt</a></li>
-            </ul>
+              <h2>Raw files</h2>
+              <ul class="raw">
+                <li><a href="bench/results.json">results.json</a></li>
+                <li><a href="bench/size_report.txt">size_report.txt</a></li>
+                <li><a href="bench/sizeof_report.txt">sizeof_report.txt</a></li>
+              </ul>
 
-            <h2>sizeof report</h2>
-            <pre>{sizeof_txt}</pre>
+              <h2>sizeof report</h2>
+              <pre>{sizeof_txt}</pre>
+            </div>
           </body>
           </html>
           """
