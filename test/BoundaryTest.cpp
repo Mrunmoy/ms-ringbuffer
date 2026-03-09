@@ -126,8 +126,8 @@ TEST_F(EmptyBufferTest, SkipFromEmpty)
 
 TEST_F(EmptyBufferTest, ReadMoreThanAvailable)
 {
-    m_rb.push(1);
-    m_rb.push(2);
+    ASSERT_TRUE(m_rb.push(1));
+    ASSERT_TRUE(m_rb.push(2));
     int buf[4]{};
     EXPECT_FALSE(m_rb.read(buf, 4)); // Only 2 available.
     EXPECT_EQ(m_rb.readAvailable(), 2u); // Unchanged.
@@ -145,7 +145,7 @@ protected:
     void SetUp() override
     {
         for (int i = 0; i < 4; ++i)
-            m_rb.push(i);
+            ASSERT_TRUE(m_rb.push(i));
     }
 };
 
@@ -166,7 +166,7 @@ TEST_F(FullBufferTest, WriteExceedingCapacity)
 {
     // Even after draining, writing more than capacity fails.
     int sink[4];
-    m_rb.read(sink, 4);
+    ASSERT_TRUE(m_rb.read(sink, 4));
 
     int src[5] = {1, 2, 3, 4, 5};
     EXPECT_FALSE(m_rb.write(src, 5));
@@ -219,7 +219,7 @@ TEST(ExactCapacity, PeekExactlyCapacity)
 {
     ms::spsc::RingBuffer<int, 4> rb;
     int src[4] = {10, 20, 30, 40};
-    rb.write(src, 4);
+    ASSERT_TRUE(rb.write(src, 4));
 
     int peeked[4]{};
     EXPECT_TRUE(rb.peek(peeked, 4));
@@ -234,7 +234,7 @@ TEST(ExactCapacity, SkipExactlyCapacity)
 {
     ms::spsc::RingBuffer<int, 4> rb;
     int src[4] = {1, 2, 3, 4};
-    rb.write(src, 4);
+    ASSERT_TRUE(rb.write(src, 4));
 
     EXPECT_TRUE(rb.skip(4));
     EXPECT_TRUE(rb.isEmpty());
@@ -255,7 +255,7 @@ TEST(ZeroCount, WriteZero)
 TEST(ZeroCount, ReadZero)
 {
     ms::spsc::RingBuffer<int, 4> rb;
-    rb.push(1);
+    ASSERT_TRUE(rb.push(1));
     int dst[1]{};
     EXPECT_TRUE(rb.read(dst, 0));
     EXPECT_EQ(rb.readAvailable(), 1u); // Unchanged.
@@ -286,9 +286,9 @@ TEST(Wraparound, ExactBoundaryBulkWrite)
     int tmp[8];
     for (int i = 0; i < 8; ++i)
         tmp[i] = i;
-    rb.write(tmp, 8);
+    ASSERT_TRUE(rb.write(tmp, 8));
     int sink[8];
-    rb.read(sink, 8);
+    ASSERT_TRUE(rb.read(sink, 8));
 
     // Head and tail are now at offset 8, which masks to 0.
     // Write should work cleanly.
@@ -326,12 +326,12 @@ TEST(Wraparound, SingleElementAtEveryOffset)
 TEST(ResetBehavior, ResetMidStream)
 {
     ms::spsc::RingBuffer<int, 8> rb;
-    rb.push(1);
-    rb.push(2);
-    rb.push(3);
+    ASSERT_TRUE(rb.push(1));
+    ASSERT_TRUE(rb.push(2));
+    ASSERT_TRUE(rb.push(3));
 
     int tmp;
-    rb.pop(tmp); // Read one.
+    ASSERT_TRUE(rb.pop(tmp)); // Read one.
 
     rb.reset();
     EXPECT_TRUE(rb.isEmpty());
@@ -347,7 +347,7 @@ TEST(ResetBehavior, ResetMidStream)
     for (int i = 0; i < 8; ++i)
     {
         int val = -1;
-        rb.pop(val);
+        EXPECT_TRUE(rb.pop(val));
         EXPECT_EQ(val, i + 100);
     }
 }
@@ -368,9 +368,9 @@ TEST(CacheLineSize, CustomSize128)
     EXPECT_EQ(rb.cacheLineSize(), 128u);
 
     // Functional test — should work identically.
-    rb.push(42);
+    EXPECT_TRUE(rb.push(42));
     int val = 0;
-    rb.pop(val);
+    EXPECT_TRUE(rb.pop(val));
     EXPECT_EQ(val, 42);
 }
 

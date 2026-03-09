@@ -386,8 +386,8 @@ TEST_F(ConcurrentTest, SPSCByteStream)
             while (rb.writeAvailable() < sizeof(len) + len)
             {
             }
-            rb.write(reinterpret_cast<const uint8_t *>(&len), sizeof(len));
-            rb.write(reinterpret_cast<const uint8_t *>(&payload), sizeof(payload));
+            (void)rb.write(reinterpret_cast<const uint8_t *>(&len), sizeof(len));
+            (void)rb.write(reinterpret_cast<const uint8_t *>(&payload), sizeof(payload));
         } });
 
     std::vector<uint32_t> received;
@@ -402,14 +402,14 @@ TEST_F(ConcurrentTest, SPSCByteStream)
             while (rb.readAvailable() < sizeof(len))
             {
             }
-            rb.read(reinterpret_cast<uint8_t *>(&len), sizeof(len));
+            (void)rb.read(reinterpret_cast<uint8_t *>(&len), sizeof(len));
 
             // Read payload.
             uint32_t payload = 0;
             while (rb.readAvailable() < len)
             {
             }
-            rb.read(reinterpret_cast<uint8_t *>(&payload), len);
+            (void)rb.read(reinterpret_cast<uint8_t *>(&payload), len);
 
             received.push_back(payload);
         } });

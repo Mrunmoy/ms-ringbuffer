@@ -54,6 +54,8 @@ namespace ms::spsc
                       "RingBuffer element type must be trivially copyable");
         static_assert(CacheLineSize >= sizeof(std::atomic<uint32_t>),
                       "CacheLineSize must be at least sizeof(atomic<uint32_t>)");
+        static_assert(CacheLineSize > 0 && (CacheLineSize & (CacheLineSize - 1)) == 0,
+                      "CacheLineSize must be a power of 2");
 
     public:
         using value_type = T;
@@ -75,6 +77,8 @@ namespace ms::spsc
         // Not copyable or movable (lives in shared memory).
         RingBuffer(const RingBuffer &) = delete;
         RingBuffer &operator=(const RingBuffer &) = delete;
+        RingBuffer(RingBuffer &&) = delete;
+        RingBuffer &operator=(RingBuffer &&) = delete;
 
         // Resets the buffer to empty state.
         void reset()
@@ -88,7 +92,7 @@ namespace ms::spsc
         // ---------------------------------------------------------------------------
 
         // Returns the number of elements available for writing.
-        uint32_t writeAvailable() const
+        [[nodiscard]] uint32_t writeAvailable() const
         {
             uint32_t head = m_ctrl.head.load(std::memory_order_relaxed);
             uint32_t tail = m_ctrl.tail.load(std::memory_order_acquire);
@@ -97,15 +101,18 @@ namespace ms::spsc
 
         // Pushes a single element into the ring buffer.
         // Returns true on success, false if the buffer is full.
-        bool push(const T &item)
+        [[nodiscard]] bool push(const T &item)
         {
             return write(&item, 1);
         }
 
         // Writes `count` elements from `data` into the ring buffer.
         // Returns true on success, false if insufficient space.
-        bool write(const T *data, uint32_t count)
+        [[nodiscard]] bool write(const T *data, uint32_t count)
         {
+            if (count == 0)
+                return true;
+
             uint32_t head = m_ctrl.head.load(std::memory_order_relaxed);
             uint32_t tail = m_ctrl.tail.load(std::memory_order_acquire);
 
@@ -137,7 +144,7 @@ namespace ms::spsc
         // ---------------------------------------------------------------------------
 
         // Returns the number of elements available for reading.
-        uint32_t readAvailable() const
+        [[nodiscard]] uint32_t readAvailable() const
         {
             uint32_t head = m_ctrl.head.load(std::memory_order_acquire);
             uint32_t tail = m_ctrl.tail.load(std::memory_order_relaxed);
@@ -146,15 +153,18 @@ namespace ms::spsc
 
         // Pops a single element from the ring buffer.
         // Returns true on success, false if the buffer is empty.
-        bool pop(T &item)
+        [[nodiscard]] bool pop(T &item)
         {
             return read(&item, 1);
         }
 
         // Peeks at the next `count` elements without consuming them.
         // Returns true if `count` elements are available, false otherwise.
-        bool peek(T *dest, uint32_t count) const
+        [[nodiscard]] bool peek(T *dest, uint32_t count) const
         {
+            if (count == 0)
+                return true;
+
             uint32_t head = m_ctrl.head.load(std::memory_order_acquire);
             uint32_t tail = m_ctrl.tail.load(std::memory_order_relaxed);
 
@@ -181,8 +191,11 @@ namespace ms::spsc
 
         // Reads `count` elements from the ring buffer into `dest`.
         // Returns true on success, false if insufficient data.
-        bool read(T *dest, uint32_t count)
+        [[nodiscard]] bool read(T *dest, uint32_t count)
         {
+            if (count == 0)
+                return true;
+
             uint32_t head = m_ctrl.head.load(std::memory_order_acquire);
             uint32_t tail = m_ctrl.tail.load(std::memory_order_relaxed);
 
@@ -211,8 +224,11 @@ namespace ms::spsc
 
         // Skips `count` elements without reading them.
         // Returns true on success, false if insufficient data.
-        bool skip(uint32_t count)
+        [[nodiscard]] bool skip(uint32_t count)
         {
+            if (count == 0)
+                return true;
+
             uint32_t head = m_ctrl.head.load(std::memory_order_acquire);
             uint32_t tail = m_ctrl.tail.load(std::memory_order_relaxed);
 
@@ -232,8 +248,8 @@ namespace ms::spsc
         static constexpr uint32_t capacity() { return Capacity; }
         static constexpr uint32_t cacheLineSize() { return CacheLineSize; }
 
-        bool isEmpty() const { return readAvailable() == 0; }
-        bool isFull() const { return writeAvailable() == 0; }
+        [[nodiscard]] bool isEmpty() const { return readAvailable() == 0; }
+        [[nodiscard]] bool isFull() const { return writeAvailable() == 0; }
 
     private:
         ControlBlock m_ctrl;

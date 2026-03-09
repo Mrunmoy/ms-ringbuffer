@@ -197,9 +197,9 @@ TEST_F(SensorRingBufferTest, WraparoundPreservesFieldValues)
     // Advance past midpoint.
     for (int i = 0; i < 14; ++i)
     {
-        m_rb.push(makeSample(i, 0, 0));
+        ASSERT_TRUE(m_rb.push(makeSample(i, 0, 0)));
         SensorReading tmp{};
-        m_rb.pop(tmp);
+        ASSERT_TRUE(m_rb.pop(tmp));
     }
 
     // Write entries that wrap around the buffer end.
@@ -257,7 +257,7 @@ TEST_F(PacketHeaderRingBufferTest, SequenceNumberIntegrity)
         {
             // Drain one to make room.
             PacketHeader tmp{};
-            m_rb.pop(tmp);
+            ASSERT_TRUE(m_rb.pop(tmp));
         }
     }
 
@@ -267,7 +267,7 @@ TEST_F(PacketHeaderRingBufferTest, SequenceNumberIntegrity)
     while (m_rb.readAvailable() > 0)
     {
         PacketHeader out{};
-        m_rb.pop(out);
+        EXPECT_TRUE(m_rb.pop(out));
         if (!first)
         {
             EXPECT_GT(out.sequenceNumber, lastSeq);
@@ -342,9 +342,9 @@ TEST_F(NestedStructRingBufferTest, BulkWraparound)
     {
         NestedStruct ns{};
         ns.id = i;
-        m_rb.push(ns);
+        ASSERT_TRUE(m_rb.push(ns));
         NestedStruct tmp{};
-        m_rb.pop(tmp);
+        ASSERT_TRUE(m_rb.pop(tmp));
     }
 
     // Bulk write that wraps.

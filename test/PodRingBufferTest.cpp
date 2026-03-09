@@ -110,8 +110,8 @@ TYPED_TEST(PodRingBufferTest, PeekDoesNotConsume)
 {
     TypeParam a = this->makeValue(10);
     TypeParam b = this->makeValue(20);
-    this->m_rb.push(a);
-    this->m_rb.push(b);
+    ASSERT_TRUE(this->m_rb.push(a));
+    ASSERT_TRUE(this->m_rb.push(b));
 
     TypeParam peeked[2]{};
     EXPECT_TRUE(this->m_rb.peek(peeked, 2));
@@ -132,7 +132,7 @@ TYPED_TEST(PodRingBufferTest, PeekDoesNotConsume)
 TYPED_TEST(PodRingBufferTest, SkipElements)
 {
     for (uint32_t i = 0; i < 5; ++i)
-        this->m_rb.push(this->makeValue(i));
+        ASSERT_TRUE(this->m_rb.push(this->makeValue(i)));
 
     EXPECT_TRUE(this->m_rb.skip(3));
     EXPECT_EQ(this->m_rb.readAvailable(), 2u);
@@ -147,7 +147,7 @@ TYPED_TEST(PodRingBufferTest, SkipElements)
 TYPED_TEST(PodRingBufferTest, ResetClearsBuffer)
 {
     for (uint32_t i = 0; i < 4; ++i)
-        this->m_rb.push(this->makeValue(i));
+        ASSERT_TRUE(this->m_rb.push(this->makeValue(i)));
 
     this->m_rb.reset();
     EXPECT_TRUE(this->m_rb.isEmpty());
@@ -161,9 +161,9 @@ TYPED_TEST(PodRingBufferTest, WraparoundSingleElements)
     // Advance head/tail to near the end.
     for (uint32_t i = 0; i < this->kCapacity - 2; ++i)
     {
-        this->m_rb.push(this->makeValue(i));
+        ASSERT_TRUE(this->m_rb.push(this->makeValue(i)));
         TypeParam tmp{};
-        this->m_rb.pop(tmp);
+        ASSERT_TRUE(this->m_rb.pop(tmp));
     }
 
     // Now write a full capacity that wraps around.
@@ -191,9 +191,9 @@ TYPED_TEST(PodRingBufferTest, WraparoundBulk)
     for (uint32_t i = 0; i < kAdvance; ++i)
         tmp[i] = this->makeValue(i);
 
-    this->m_rb.write(tmp, kAdvance);
+    ASSERT_TRUE(this->m_rb.write(tmp, kAdvance));
     TypeParam sink[kAdvance];
-    this->m_rb.read(sink, kAdvance);
+    ASSERT_TRUE(this->m_rb.read(sink, kAdvance));
 
     // Bulk write that wraps around the end.
     constexpr uint32_t kBulk = 8;
@@ -245,13 +245,13 @@ TYPED_TEST(PodRingBufferTest, InterleavedPushPop)
     {
         for (int i = 0; i < 3 && this->m_rb.writeAvailable() > 0; ++i)
         {
-            this->m_rb.push(this->makeValue(pushed));
+            ASSERT_TRUE(this->m_rb.push(this->makeValue(pushed)));
             ++pushed;
         }
         if (this->m_rb.readAvailable() > 0)
         {
             TypeParam val{};
-            this->m_rb.pop(val);
+            EXPECT_TRUE(this->m_rb.pop(val));
             EXPECT_EQ(val, this->makeValue(popped));
             ++popped;
         }
@@ -261,7 +261,7 @@ TYPED_TEST(PodRingBufferTest, InterleavedPushPop)
     while (this->m_rb.readAvailable() > 0)
     {
         TypeParam val{};
-        this->m_rb.pop(val);
+        EXPECT_TRUE(this->m_rb.pop(val));
         EXPECT_EQ(val, this->makeValue(popped));
         ++popped;
     }

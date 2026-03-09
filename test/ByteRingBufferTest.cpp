@@ -28,8 +28,8 @@ protected:
         uint32_t leLen = len; // assume LE for simplicity
         if (m_rb.writeAvailable() < sizeof(leLen) + len)
             return false;
-        m_rb.write(reinterpret_cast<const uint8_t *>(&leLen), sizeof(leLen));
-        m_rb.write(reinterpret_cast<const uint8_t *>(payload), len);
+        (void)m_rb.write(reinterpret_cast<const uint8_t *>(&leLen), sizeof(leLen));
+        (void)m_rb.write(reinterpret_cast<const uint8_t *>(payload), len);
         return true;
     }
 
@@ -44,9 +44,9 @@ protected:
             return false;
         if (m_rb.readAvailable() < sizeof(len) + len)
             return false;
-        m_rb.skip(sizeof(len));
+        (void)m_rb.skip(sizeof(len));
         out.resize(len);
-        m_rb.read(out.data(), len);
+        (void)m_rb.read(out.data(), len);
         return true;
     }
 };
@@ -97,7 +97,7 @@ TEST_F(ByteRingBufferTest, FrameWraparound)
     // Fill and drain most of the buffer to advance the position.
     std::vector<uint8_t> filler(200, 0xAA);
     EXPECT_TRUE(m_rb.write(filler.data(), filler.size()));
-    m_rb.skip(filler.size());
+    EXPECT_TRUE(m_rb.skip(filler.size()));
 
     // Now write a frame that will wrap around the end.
     std::string msg = "this frame wraps around the ring buffer boundary";
