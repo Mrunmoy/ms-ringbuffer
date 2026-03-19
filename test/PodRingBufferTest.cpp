@@ -261,7 +261,7 @@ TYPED_TEST(PodRingBufferTest, InterleavedPushPop)
     while (this->m_rb.readAvailable() > 0)
     {
         TypeParam val{};
-        EXPECT_TRUE(this->m_rb.pop(val));
+        ASSERT_TRUE(this->m_rb.pop(val));
         EXPECT_EQ(val, this->makeValue(popped));
         ++popped;
     }

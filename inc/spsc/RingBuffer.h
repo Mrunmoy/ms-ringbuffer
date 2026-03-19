@@ -52,8 +52,8 @@ namespace ms::spsc
                       "RingBuffer capacity must be a power of 2");
         static_assert(std::is_trivially_copyable_v<T>,
                       "RingBuffer element type must be trivially copyable");
-        static_assert(CacheLineSize >= sizeof(std::atomic<uint32_t>),
-                      "CacheLineSize must be at least sizeof(atomic<uint32_t>)");
+        static_assert(CacheLineSize > sizeof(std::atomic<uint32_t>),
+                      "CacheLineSize must be greater than sizeof(atomic<uint32_t>)");
         static_assert(CacheLineSize > 0 && (CacheLineSize & (CacheLineSize - 1)) == 0,
                       "CacheLineSize must be a power of 2");
 

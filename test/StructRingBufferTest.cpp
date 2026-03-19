@@ -267,7 +267,7 @@ TEST_F(PacketHeaderRingBufferTest, SequenceNumberIntegrity)
     while (m_rb.readAvailable() > 0)
     {
         PacketHeader out{};
-        EXPECT_TRUE(m_rb.pop(out));
+        ASSERT_TRUE(m_rb.pop(out));
         if (!first)
         {
             EXPECT_GT(out.sequenceNumber, lastSeq);
