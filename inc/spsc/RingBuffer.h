@@ -24,7 +24,7 @@
 #include <cstring>
 #include <type_traits>
 
-namespace ms::spsc
+namespace ouroboros::spsc
 {
 
     // Library version — single source of truth.
@@ -260,4 +260,4 @@ namespace ms::spsc
     template <uint32_t Size>
     using ByteRingBuffer = RingBuffer<uint8_t, Size>;
 
-} // namespace ms::spsc
+} // namespace ouroboros::spsc

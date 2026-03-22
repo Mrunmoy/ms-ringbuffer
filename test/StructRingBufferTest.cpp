@@ -87,7 +87,7 @@ inline bool operator==(const NestedStruct &a, const NestedStruct &b)
 class Point2DRingBufferTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<Point2D, 8> m_rb;
+    ouroboros::spsc::RingBuffer<Point2D, 8> m_rb;
 };
 
 TEST_F(Point2DRingBufferTest, PushPop)
@@ -141,7 +141,7 @@ TEST_F(Point2DRingBufferTest, FillDrainAndRefill)
 class SensorRingBufferTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<SensorReading, 16> m_rb;
+    ouroboros::spsc::RingBuffer<SensorReading, 16> m_rb;
 
     SensorReading makeSample(uint32_t id, float val, uint64_t ts)
     {
@@ -227,7 +227,7 @@ TEST_F(SensorRingBufferTest, WraparoundPreservesFieldValues)
 class PacketHeaderRingBufferTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<PacketHeader, 32> m_rb;
+    ouroboros::spsc::RingBuffer<PacketHeader, 32> m_rb;
 };
 
 TEST_F(PacketHeaderRingBufferTest, ProtocolHeaders)
@@ -284,7 +284,7 @@ TEST_F(PacketHeaderRingBufferTest, SequenceNumberIntegrity)
 class FixedStringRingBufferTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<FixedString, 8> m_rb;
+    ouroboros::spsc::RingBuffer<FixedString, 8> m_rb;
 
     FixedString makeString(const char *s)
     {
@@ -318,7 +318,7 @@ TEST_F(FixedStringRingBufferTest, StoreAndRetrieveStrings)
 class NestedStructRingBufferTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<NestedStruct, 8> m_rb;
+    ouroboros::spsc::RingBuffer<NestedStruct, 8> m_rb;
 };
 
 TEST_F(NestedStructRingBufferTest, NestedFieldsPreserved)

@@ -21,7 +21,7 @@ namespace
 
 int main()
 {
-    using namespace ms::spsc;
+    using namespace ouroboros::spsc;
 
     print_sizeof<RingBuffer<uint8_t, 1024>>("RingBuffer<uint8_t,1024>");
     print_sizeof<RingBuffer<uint64_t, 65536>>("RingBuffer<uint64_t,65536>");

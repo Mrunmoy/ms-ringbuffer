@@ -1,4 +1,4 @@
-// Basic usage of ms::spsc::RingBuffer with different data types.
+// Basic usage of ouroboros::spsc::RingBuffer with different data types.
 //
 // Demonstrates: push/pop, bulk write/read, peek, skip, reset,
 // and the ByteRingBuffer alias for raw byte streams.
@@ -22,7 +22,7 @@ int main()
     // ── 1. Integer ring buffer ──────────────────────────────────────
     printf("=== Integer ring buffer ===\n");
 
-    ms::spsc::RingBuffer<int, 8> intBuf;
+    ouroboros::spsc::RingBuffer<int, 8> intBuf;
 
     // Push individual elements.
     (void)intBuf.push(10);
@@ -66,7 +66,7 @@ int main()
     // ── 3. Struct ring buffer ───────────────────────────────────────
     printf("\n=== Struct ring buffer ===\n");
 
-    ms::spsc::RingBuffer<SensorReading, 16> sensorBuf;
+    ouroboros::spsc::RingBuffer<SensorReading, 16> sensorBuf;
 
     SensorReading readings[] = {
         {1, 23.5f, 1000},
@@ -86,7 +86,7 @@ int main()
     // ── 4. Byte ring buffer (IPC-style) ─────────────────────────────
     printf("\n=== Byte ring buffer ===\n");
 
-    ms::spsc::ByteRingBuffer<256> byteBuf;
+    ouroboros::spsc::ByteRingBuffer<256> byteBuf;
 
     // Write a length-prefixed message.
     const char *msg = "hello from ring buffer!";
@@ -107,7 +107,7 @@ int main()
     // ── 5. Full/empty checks ────────────────────────────────────────
     printf("\n=== Capacity checks ===\n");
 
-    ms::spsc::RingBuffer<int, 4> smallBuf;
+    ouroboros::spsc::RingBuffer<int, 4> smallBuf;
     printf("Empty: %s\n", smallBuf.isEmpty() ? "yes" : "no");
 
     for (int i = 0; i < 4; ++i)

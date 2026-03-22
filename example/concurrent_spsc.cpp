@@ -20,7 +20,7 @@ struct Message
 int main()
 {
     static constexpr uint32_t kMessageCount = 1'000'000;
-    ms::spsc::RingBuffer<Message, 1024> rb;
+    ouroboros::spsc::RingBuffer<Message, 1024> rb;
 
     auto startTime = std::chrono::steady_clock::now();
 

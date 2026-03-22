@@ -1,7 +1,7 @@
 # Future Work — Multi-Producer/Consumer Ring Buffer Variants
 
 ## Current State
-- SPSC implementation at `inc/spsc/RingBuffer.h` (namespace `ms::spsc`)
+- SPSC implementation at `inc/spsc/RingBuffer.h` (namespace `ouroboros::spsc`)
 - Header-only, lock-free, wait-free, cache-line-padded
 - Supports bulk `write()`/`read()`, `peek()`, `skip()`
 

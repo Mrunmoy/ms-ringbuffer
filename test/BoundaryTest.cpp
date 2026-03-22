@@ -19,7 +19,7 @@
 class MinCapacityTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<int, 1> m_rb;
+    ouroboros::spsc::RingBuffer<int, 1> m_rb;
 };
 
 TEST_F(MinCapacityTest, Capacity)
@@ -59,7 +59,7 @@ TEST_F(MinCapacityTest, RepeatedPushPop)
 class SmallCapacityTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<uint64_t, 2> m_rb;
+    ouroboros::spsc::RingBuffer<uint64_t, 2> m_rb;
 };
 
 TEST_F(SmallCapacityTest, FillAndDrain)
@@ -96,7 +96,7 @@ TEST_F(SmallCapacityTest, BulkExactFit)
 class EmptyBufferTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<int, 8> m_rb;
+    ouroboros::spsc::RingBuffer<int, 8> m_rb;
 };
 
 TEST_F(EmptyBufferTest, PopFromEmpty)
@@ -140,7 +140,7 @@ TEST_F(EmptyBufferTest, ReadMoreThanAvailable)
 class FullBufferTest : public ::testing::Test
 {
 protected:
-    ms::spsc::RingBuffer<int, 4> m_rb;
+    ouroboros::spsc::RingBuffer<int, 4> m_rb;
 
     void SetUp() override
     {
@@ -198,7 +198,7 @@ TEST_F(FullBufferTest, PopOneThenPushOne)
 
 TEST(ExactCapacity, WriteExactlyCapacity)
 {
-    ms::spsc::RingBuffer<int, 8> rb;
+    ouroboros::spsc::RingBuffer<int, 8> rb;
     int src[8];
     for (int i = 0; i < 8; ++i)
         src[i] = i * 100;
@@ -217,7 +217,7 @@ TEST(ExactCapacity, WriteExactlyCapacity)
 
 TEST(ExactCapacity, PeekExactlyCapacity)
 {
-    ms::spsc::RingBuffer<int, 4> rb;
+    ouroboros::spsc::RingBuffer<int, 4> rb;
     int src[4] = {10, 20, 30, 40};
     ASSERT_TRUE(rb.write(src, 4));
 
@@ -232,7 +232,7 @@ TEST(ExactCapacity, PeekExactlyCapacity)
 
 TEST(ExactCapacity, SkipExactlyCapacity)
 {
-    ms::spsc::RingBuffer<int, 4> rb;
+    ouroboros::spsc::RingBuffer<int, 4> rb;
     int src[4] = {1, 2, 3, 4};
     ASSERT_TRUE(rb.write(src, 4));
 
@@ -246,7 +246,7 @@ TEST(ExactCapacity, SkipExactlyCapacity)
 
 TEST(ZeroCount, WriteZero)
 {
-    ms::spsc::RingBuffer<int, 4> rb;
+    ouroboros::spsc::RingBuffer<int, 4> rb;
     int src[1] = {42};
     EXPECT_TRUE(rb.write(src, 0));
     EXPECT_TRUE(rb.isEmpty());
@@ -254,7 +254,7 @@ TEST(ZeroCount, WriteZero)
 
 TEST(ZeroCount, ReadZero)
 {
-    ms::spsc::RingBuffer<int, 4> rb;
+    ouroboros::spsc::RingBuffer<int, 4> rb;
     ASSERT_TRUE(rb.push(1));
     int dst[1]{};
     EXPECT_TRUE(rb.read(dst, 0));
@@ -263,14 +263,14 @@ TEST(ZeroCount, ReadZero)
 
 TEST(ZeroCount, PeekZero)
 {
-    ms::spsc::RingBuffer<int, 4> rb;
+    ouroboros::spsc::RingBuffer<int, 4> rb;
     int dst[1]{};
     EXPECT_TRUE(rb.peek(dst, 0));
 }
 
 TEST(ZeroCount, SkipZero)
 {
-    ms::spsc::RingBuffer<int, 4> rb;
+    ouroboros::spsc::RingBuffer<int, 4> rb;
     EXPECT_TRUE(rb.skip(0));
 }
 
@@ -280,7 +280,7 @@ TEST(ZeroCount, SkipZero)
 
 TEST(Wraparound, ExactBoundaryBulkWrite)
 {
-    ms::spsc::RingBuffer<int, 8> rb;
+    ouroboros::spsc::RingBuffer<int, 8> rb;
 
     // Advance head/tail to exactly position 8 (= capacity, wraps to 0).
     int tmp[8];
@@ -307,7 +307,7 @@ TEST(Wraparound, ExactBoundaryBulkWrite)
 
 TEST(Wraparound, SingleElementAtEveryOffset)
 {
-    ms::spsc::RingBuffer<int, 4> rb;
+    ouroboros::spsc::RingBuffer<int, 4> rb;
 
     // Push and pop one element at each internal offset.
     for (int i = 0; i < 20; ++i)
@@ -325,7 +325,7 @@ TEST(Wraparound, SingleElementAtEveryOffset)
 
 TEST(ResetBehavior, ResetMidStream)
 {
-    ms::spsc::RingBuffer<int, 8> rb;
+    ouroboros::spsc::RingBuffer<int, 8> rb;
     ASSERT_TRUE(rb.push(1));
     ASSERT_TRUE(rb.push(2));
     ASSERT_TRUE(rb.push(3));
@@ -358,13 +358,13 @@ TEST(ResetBehavior, ResetMidStream)
 
 TEST(CacheLineSize, DefaultIs64)
 {
-    ms::spsc::RingBuffer<int, 8> rb;
+    ouroboros::spsc::RingBuffer<int, 8> rb;
     EXPECT_EQ(rb.cacheLineSize(), 64u);
 }
 
 TEST(CacheLineSize, CustomSize128)
 {
-    ms::spsc::RingBuffer<int, 8, 128> rb;
+    ouroboros::spsc::RingBuffer<int, 8, 128> rb;
     EXPECT_EQ(rb.cacheLineSize(), 128u);
 
     // Functional test — should work identically.
@@ -377,11 +377,11 @@ TEST(CacheLineSize, CustomSize128)
 TEST(CacheLineSize, ControlBlockAlignment)
 {
     // The ControlBlock should be aligned to CacheLineSize.
-    using RB64 = ms::spsc::RingBuffer<int, 8, 64>;
+    using RB64 = ouroboros::spsc::RingBuffer<int, 8, 64>;
     static_assert(alignof(RB64::ControlBlock) == 64,
                   "ControlBlock must be aligned to CacheLineSize=64");
 
-    using RB128 = ms::spsc::RingBuffer<int, 8, 128>;
+    using RB128 = ouroboros::spsc::RingBuffer<int, 8, 128>;
     static_assert(alignof(RB128::ControlBlock) == 128,
                   "ControlBlock must be aligned to CacheLineSize=128");
 }
@@ -392,10 +392,10 @@ TEST(CacheLineSize, ControlBlockAlignment)
 
 TEST(Version, ConstexprsAccessible)
 {
-    EXPECT_EQ(ms::spsc::Version::major, 1);
-    EXPECT_EQ(ms::spsc::Version::minor, 0);
-    EXPECT_EQ(ms::spsc::Version::patch, 0);
-    EXPECT_EQ(ms::spsc::Version::packed, 0x010000u);
+    EXPECT_EQ(ouroboros::spsc::Version::major, 1);
+    EXPECT_EQ(ouroboros::spsc::Version::minor, 0);
+    EXPECT_EQ(ouroboros::spsc::Version::patch, 0);
+    EXPECT_EQ(ouroboros::spsc::Version::packed, 0x010000u);
 }
 
 // ---------------------------------------------------------------------------
@@ -405,7 +405,7 @@ TEST(Version, ConstexprsAccessible)
 TEST(Concurrent, SPSCStress)
 {
     static constexpr uint32_t kCount = 200000;
-    ms::spsc::RingBuffer<uint32_t, 1024> rb;
+    ouroboros::spsc::RingBuffer<uint32_t, 1024> rb;
 
     std::thread producer([&]() {
         for (uint32_t i = 0; i < kCount; ++i)
@@ -451,7 +451,7 @@ TEST(Concurrent, SPSCStressWithStructs)
     };
 
     static constexpr uint32_t kCount = 100000;
-    ms::spsc::RingBuffer<Event, 512> rb;
+    ouroboros::spsc::RingBuffer<Event, 512> rb;
 
     std::thread producer([&]() {
         for (uint32_t i = 0; i < kCount; ++i)
@@ -495,10 +495,10 @@ TEST(Concurrent, SPSCStressWithStructs)
 // These verify that invalid instantiations produce compile errors.
 // (Uncomment one at a time to verify the static_assert fires.)
 //
-// ms::spsc::RingBuffer<int, 3>  rb_bad_size;   // Not a power of 2.
-// ms::spsc::RingBuffer<int, 0>  rb_zero;       // Zero capacity.
+// ouroboros::spsc::RingBuffer<int, 3>  rb_bad_size;   // Not a power of 2.
+// ouroboros::spsc::RingBuffer<int, 0>  rb_zero;       // Zero capacity.
 //
 // struct NonTriviallyCopyable {
 //     std::string s;
 // };
-// ms::spsc::RingBuffer<NonTriviallyCopyable, 4> rb_bad_type;  // Not trivially copyable.
+// ouroboros::spsc::RingBuffer<NonTriviallyCopyable, 4> rb_bad_type;  // Not trivially copyable.

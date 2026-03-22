@@ -15,7 +15,7 @@ namespace
 
     static void ringbuffer_push_pop_u64(benchmark::State &state)
     {
-        using namespace ms::spsc;
+        using namespace ouroboros::spsc;
 
         RingBuffer<uint64_t, 65536> rb;
 
@@ -54,7 +54,7 @@ namespace
     template <uint32_t Capacity>
     static void ringbuffer_spsc_throughput_u64_impl(benchmark::State &state)
     {
-        using namespace ms::spsc;
+        using namespace ouroboros::spsc;
 
         static RingBuffer<uint64_t, Capacity> rb;
 
@@ -154,7 +154,7 @@ namespace
     template <uint32_t Capacity>
     static void ringbuffer_spsc_throughput_payload64_impl(benchmark::State &state)
     {
-        using namespace ms::spsc;
+        using namespace ouroboros::spsc;
 
         static RingBuffer<Payload64, Capacity> rb;
 

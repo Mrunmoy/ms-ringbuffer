@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-Header-only, lock-free SPSC (single-producer single-consumer) ring buffer for C++17. The entire library is a single header: `inc/spsc/RingBuffer.h`. Namespace is `ms::spsc`.
+Header-only, lock-free SPSC (single-producer single-consumer) ring buffer for C++17. The entire library is a single header: `inc/spsc/RingBuffer.h`. Namespace is `ouroboros::spsc`.
 
 ## Build commands
 

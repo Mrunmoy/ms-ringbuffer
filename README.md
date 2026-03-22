@@ -53,7 +53,7 @@ Includes:
 ``` cpp
 #include <spsc/RingBuffer.h>
 
-ms::spsc::RingBuffer<int, 1024> rb;
+ouroboros::spsc::RingBuffer<int, 1024> rb;
 
 rb.push(42);
 

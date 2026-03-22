@@ -77,26 +77,26 @@ protected:
 
 TEST_F(ConcurrentTest, SPSCInt)
 {
-    ms::spsc::RingBuffer<int, 256> rb;
+    ouroboros::spsc::RingBuffer<int, 256> rb;
     runSPSC(rb, 500000);
 }
 
 TEST_F(ConcurrentTest, SPSCUint64)
 {
-    ms::spsc::RingBuffer<uint64_t, 512> rb;
+    ouroboros::spsc::RingBuffer<uint64_t, 512> rb;
     runSPSC(rb, 500000);
 }
 
 TEST_F(ConcurrentTest, SPSCFloat)
 {
-    ms::spsc::RingBuffer<float, 128> rb;
+    ouroboros::spsc::RingBuffer<float, 128> rb;
     // Float cast from uint32_t may lose precision past ~16M, keep count small.
     runSPSC(rb, 100000);
 }
 
 TEST_F(ConcurrentTest, SPSCChar)
 {
-    ms::spsc::RingBuffer<char, 64> rb;
+    ouroboros::spsc::RingBuffer<char, 64> rb;
     // char wraps at 128 (signed) or 256 (unsigned), so limit count.
     runSPSC(rb, 127);
 }
@@ -115,7 +115,7 @@ struct Message
 TEST_F(ConcurrentTest, SPSCStruct)
 {
     static constexpr uint32_t kCount = 300000;
-    ms::spsc::RingBuffer<Message, 1024> rb;
+    ouroboros::spsc::RingBuffer<Message, 1024> rb;
 
     std::thread producer([&]()
                          {
@@ -161,7 +161,7 @@ TEST_F(ConcurrentTest, SPSCBulkBatches)
 {
     static constexpr uint32_t kTotal = 200000;
     static constexpr uint32_t kBatch = 16;
-    ms::spsc::RingBuffer<uint32_t, 256> rb;
+    ouroboros::spsc::RingBuffer<uint32_t, 256> rb;
 
     std::thread producer([&]()
                          {
@@ -218,7 +218,7 @@ TEST_F(ConcurrentTest, SPSCAsymmetricBatches)
 {
     static constexpr uint32_t kTotal = 100000;
     static constexpr uint32_t kReadBatch = 32;
-    ms::spsc::RingBuffer<uint32_t, 512> rb;
+    ouroboros::spsc::RingBuffer<uint32_t, 512> rb;
 
     std::thread producer([&]()
                          {
@@ -269,7 +269,7 @@ TEST_F(ConcurrentTest, SPSCAsymmetricBatches)
 TEST_F(ConcurrentTest, SPSCMinCapacity)
 {
     static constexpr uint32_t kCount = 50000;
-    ms::spsc::RingBuffer<uint32_t, 1> rb;
+    ouroboros::spsc::RingBuffer<uint32_t, 1> rb;
 
     std::thread producer([&]()
                          {
@@ -317,7 +317,7 @@ struct LargePayload
 TEST_F(ConcurrentTest, SPSCLargeStruct)
 {
     static constexpr uint32_t kCount = 50000;
-    ms::spsc::RingBuffer<LargePayload, 64> rb;
+    ouroboros::spsc::RingBuffer<LargePayload, 64> rb;
 
     std::thread producer([&]()
                          {
@@ -372,7 +372,7 @@ TEST_F(ConcurrentTest, SPSCLargeStruct)
 TEST_F(ConcurrentTest, SPSCByteStream)
 {
     static constexpr uint32_t kMessages = 10000;
-    ms::spsc::ByteRingBuffer<4096> rb;
+    ouroboros::spsc::ByteRingBuffer<4096> rb;
 
     std::thread producer([&]()
                          {
@@ -431,7 +431,7 @@ TEST_F(ConcurrentTest, SPSCByteStream)
 TEST_F(ConcurrentTest, SPSCCustomCacheLine128)
 {
     static constexpr uint32_t kCount = 200000;
-    ms::spsc::RingBuffer<uint32_t, 256, 128> rb;
+    ouroboros::spsc::RingBuffer<uint32_t, 256, 128> rb;
 
     std::thread producer([&]()
                          {
@@ -476,7 +476,7 @@ TEST_F(ConcurrentTest, SustainedThroughput)
     // wrap past UINT32_MAX / Capacity many times, exercising the bitmask
     // arithmetic under contention.
     static constexpr uint32_t kCount = 1000000;
-    ms::spsc::RingBuffer<uint32_t, 64> rb;
+    ouroboros::spsc::RingBuffer<uint32_t, 64> rb;
 
     std::thread producer([&]()
                          {

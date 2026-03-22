@@ -20,7 +20,7 @@ class PodRingBufferTest : public ::testing::Test
 {
 protected:
     static constexpr uint32_t kCapacity = 16;
-    ms::spsc::RingBuffer<T, kCapacity> m_rb;
+    ouroboros::spsc::RingBuffer<T, kCapacity> m_rb;
 
     // Helper: make a deterministic value for element index i.
     static T makeValue(int i)

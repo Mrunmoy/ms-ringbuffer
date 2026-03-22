@@ -20,7 +20,7 @@ class ByteRingBufferTest : public ::testing::Test
 {
 protected:
     static constexpr uint32_t kSize = 256;
-    ms::spsc::ByteRingBuffer<kSize> m_rb;
+    ouroboros::spsc::ByteRingBuffer<kSize> m_rb;
 
     // Write a length-prefixed frame: [uint32_t length][payload bytes].
     bool writeFrame(const void *payload, uint32_t len)
@@ -141,8 +141,8 @@ TEST_F(ByteRingBufferTest, AliasMatchesFullType)
     // Verify ByteRingBuffer<N> is truly RingBuffer<uint8_t, N>.
     static_assert(
         std::is_same_v<
-            ms::spsc::ByteRingBuffer<64>,
-            ms::spsc::RingBuffer<uint8_t, 64>>,
+            ouroboros::spsc::ByteRingBuffer<64>,
+            ouroboros::spsc::RingBuffer<uint8_t, 64>>,
         "ByteRingBuffer should be an alias for RingBuffer<uint8_t, N>");
 }
 
