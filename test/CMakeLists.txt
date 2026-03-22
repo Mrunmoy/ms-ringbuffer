@@ -17,6 +17,7 @@ add_executable(ringbuffer_tests
     ByteRingBufferTest.cpp
     BoundaryTest.cpp
     ConcurrentTest.cpp
+    MpscRingBufferTest.cpp
 )
 target_link_libraries(ringbuffer_tests PRIVATE ouroboros GTest::gtest_main pthread)
 
