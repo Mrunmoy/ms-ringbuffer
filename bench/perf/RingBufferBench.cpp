@@ -4,6 +4,8 @@
 #include <cstdint>
 
 #include "spsc/RingBuffer.h"
+#include "mpsc/RingBuffer.h"
+#include "spmc/RingBuffer.h"
 
 namespace
 {
@@ -250,5 +252,191 @@ namespace
     }
 
     BENCHMARK(ringbuffer_spsc_throughput_payload64)->Threads(2)->Arg(1024)->Arg(4096)->Arg(65536);
+
+    // ─────────────────────────────────────────────────────────────────
+    // MPSC throughput (u64) — N producers, 1 consumer
+    // ─────────────────────────────────────────────────────────────────
+
+    template <uint32_t Capacity>
+    static void ringbuffer_mpsc_throughput_u64_impl(benchmark::State &state)
+    {
+        using namespace ouroboros::mpsc;
+
+        static RingBuffer<uint64_t, Capacity> rb;
+
+        static std::atomic<int> arrived{0};
+        static std::atomic<int> generation{0};
+        static std::atomic<bool> stop{false};
+
+        const int tid = state.thread_index();
+        const int nthreads = state.threads();
+        const int my_gen = generation.load(std::memory_order_acquire);
+
+        if (tid == 0)
+        {
+            rb.reset();
+            stop.store(false, std::memory_order_release);
+        }
+
+        if (arrived.fetch_add(1, std::memory_order_acq_rel) == nthreads - 1)
+        {
+            arrived.store(0, std::memory_order_release);
+            generation.fetch_add(1, std::memory_order_release);
+        }
+        else
+        {
+            while (generation.load(std::memory_order_acquire) == my_gen)
+            {
+            }
+        }
+
+        uint64_t local_count = 0;
+
+        // tid 0 = consumer, rest = producers
+        if (tid == 0)
+        {
+            uint64_t out = 0;
+
+            while (state.KeepRunning())
+            {
+                if (rb.pop(out))
+                {
+                    benchmark::DoNotOptimize(out);
+                    local_count++;
+                }
+            }
+
+            stop.store(true, std::memory_order_release);
+
+            while (!rb.isEmpty())
+            {
+                if (rb.pop(out))
+                {
+                    benchmark::DoNotOptimize(out);
+                    local_count++;
+                }
+            }
+        }
+        else
+        {
+            uint64_t v = static_cast<uint64_t>(tid) << 32;
+
+            while (state.KeepRunning())
+            {
+                if (rb.push(v))
+                {
+                    v++;
+                    local_count++;
+                }
+            }
+        }
+
+        state.SetItemsProcessed(static_cast<int64_t>(local_count));
+    }
+
+    static void ringbuffer_mpsc_throughput_u64(benchmark::State &state)
+    {
+        const int cap = static_cast<int>(state.range(0));
+        if (cap == 1024) { ringbuffer_mpsc_throughput_u64_impl<1024>(state); return; }
+        if (cap == 4096) { ringbuffer_mpsc_throughput_u64_impl<4096>(state); return; }
+        ringbuffer_mpsc_throughput_u64_impl<65536>(state);
+    }
+
+    // 3 threads = 2 producers + 1 consumer; 5 threads = 4+1
+    BENCHMARK(ringbuffer_mpsc_throughput_u64)->Threads(3)->Arg(1024)->Arg(4096)->Arg(65536);
+    BENCHMARK(ringbuffer_mpsc_throughput_u64)->Threads(5)->Arg(4096);
+
+    // ─────────────────────────────────────────────────────────────────
+    // SPMC throughput (u64) — 1 producer, N consumers
+    // ─────────────────────────────────────────────────────────────────
+
+    template <uint32_t Capacity>
+    static void ringbuffer_spmc_throughput_u64_impl(benchmark::State &state)
+    {
+        using namespace ouroboros::spmc;
+
+        static RingBuffer<uint64_t, Capacity> rb;
+
+        static std::atomic<int> arrived{0};
+        static std::atomic<int> generation{0};
+        static std::atomic<bool> stop{false};
+
+        const int tid = state.thread_index();
+        const int nthreads = state.threads();
+        const int my_gen = generation.load(std::memory_order_acquire);
+
+        if (tid == 0)
+        {
+            rb.reset();
+            stop.store(false, std::memory_order_release);
+        }
+
+        if (arrived.fetch_add(1, std::memory_order_acq_rel) == nthreads - 1)
+        {
+            arrived.store(0, std::memory_order_release);
+            generation.fetch_add(1, std::memory_order_release);
+        }
+        else
+        {
+            while (generation.load(std::memory_order_acquire) == my_gen)
+            {
+            }
+        }
+
+        uint64_t local_count = 0;
+
+        // tid 0 = producer, rest = consumers
+        if (tid == 0)
+        {
+            uint64_t v = 0;
+
+            while (state.KeepRunning())
+            {
+                if (rb.push(v))
+                {
+                    v++;
+                    local_count++;
+                }
+            }
+
+            stop.store(true, std::memory_order_release);
+        }
+        else
+        {
+            uint64_t out = 0;
+
+            while (state.KeepRunning())
+            {
+                if (rb.pop(out))
+                {
+                    benchmark::DoNotOptimize(out);
+                    local_count++;
+                }
+            }
+
+            while (!stop.load(std::memory_order_acquire) || !rb.isEmpty())
+            {
+                if (rb.pop(out))
+                {
+                    benchmark::DoNotOptimize(out);
+                    local_count++;
+                }
+            }
+        }
+
+        state.SetItemsProcessed(static_cast<int64_t>(local_count));
+    }
+
+    static void ringbuffer_spmc_throughput_u64(benchmark::State &state)
+    {
+        const int cap = static_cast<int>(state.range(0));
+        if (cap == 1024) { ringbuffer_spmc_throughput_u64_impl<1024>(state); return; }
+        if (cap == 4096) { ringbuffer_spmc_throughput_u64_impl<4096>(state); return; }
+        ringbuffer_spmc_throughput_u64_impl<65536>(state);
+    }
+
+    // 3 threads = 1 producer + 2 consumers; 5 threads = 1+4
+    BENCHMARK(ringbuffer_spmc_throughput_u64)->Threads(3)->Arg(1024)->Arg(4096)->Arg(65536);
+    BENCHMARK(ringbuffer_spmc_throughput_u64)->Threads(5)->Arg(4096);
 
 } // namespace
