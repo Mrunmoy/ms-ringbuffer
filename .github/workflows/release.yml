@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & test
+        run: python3 build.py -t
+
+      - name: Package headers
+        run: |
+          root="ouroboros-${{ steps.version.outputs.version }}"
+          mkdir -p "${root}/include"
+          cp -r inc/spsc inc/mpsc inc/spmc "${root}/include/"
+          cp build/ouroboros_version.h "${root}/include/"
+          cp LICENSE README.md "${root}/"
+          tar czf "${root}.tar.gz" "${root}"
+          echo "ARCHIVE=${root}.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ARCHIVE }}
+          generate_release_notes: true
