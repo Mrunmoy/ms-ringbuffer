@@ -5,6 +5,7 @@
 // custom cache line sizes.
 
 #include <spsc/RingBuffer.h>
+#include <ouroboros_version.h>
 
 #include <cstdint>
 #include <thread>
@@ -392,10 +393,10 @@ TEST(CacheLineSize, ControlBlockAlignment)
 
 TEST(Version, ConstexprsAccessible)
 {
-    EXPECT_EQ(ouroboros::spsc::Version::major, 1);
-    EXPECT_EQ(ouroboros::spsc::Version::minor, 0);
-    EXPECT_EQ(ouroboros::spsc::Version::patch, 0);
-    EXPECT_EQ(ouroboros::spsc::Version::packed, 0x010000u);
+    EXPECT_EQ(ouroboros::Version::major, 1);
+    EXPECT_EQ(ouroboros::Version::minor, 0);
+    EXPECT_EQ(ouroboros::Version::patch, 0);
+    EXPECT_EQ(ouroboros::Version::packed, 0x010000u);
 }
 
 // ---------------------------------------------------------------------------

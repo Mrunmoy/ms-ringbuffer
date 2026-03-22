@@ -27,14 +27,6 @@
 namespace ouroboros::spsc
 {
 
-    // Library version — single source of truth.
-    struct Version
-    {
-        static constexpr uint8_t  major  = 1;
-        static constexpr uint8_t  minor  = 0;
-        static constexpr uint8_t  patch  = 0;
-        static constexpr uint32_t packed = (major << 16) | (minor << 8) | patch;
-    };
 
     // Lock-free Single-Producer Single-Consumer ring buffer.
     //
