@@ -9,7 +9,6 @@
 #include <cstring>
 #include <thread>
 #include <vector>
-#include <mutex>
 
 // ─── Basic single-threaded tests ────────────────────────────────────
 

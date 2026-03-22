@@ -1,13 +1,12 @@
 // MPSC RingBuffer unit + concurrent tests.
 
-#include <spsc/RingBuffer.h>  // for comparison / type-trait checks
 #include <mpsc/RingBuffer.h>
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstring>
-#include <numeric>
 #include <thread>
 #include <vector>
 

@@ -39,10 +39,15 @@ namespace ouroboros::spmc
                       "CacheLineSize must be greater than sizeof(atomic<uint32_t>)");
         static_assert(CacheLineSize > 0 && (CacheLineSize & (CacheLineSize - 1)) == 0,
                       "CacheLineSize must be a power of 2");
+        static_assert(Capacity < (uint32_t{1} << 31),
+                      "Capacity must be less than 2^31 for signed-difference logic");
+        static_assert(std::atomic<uint32_t>::is_always_lock_free,
+                      "uint32_t atomics must be lock-free on this platform");
 
         static constexpr uint32_t Mask = Capacity - 1;
 
     public:
+        using value_type = T;
         // ── Layout types ────────────────────────────────────────────
 
         struct alignas(CacheLineSize) ControlBlock
@@ -120,7 +125,7 @@ namespace ouroboros::spmc
             }
         }
 
-        // ── Queries ─────────────────────────────────────────────────
+        // ── Queries (approximate — consumers may have claimed but not freed) ──
 
         [[nodiscard]] uint32_t readAvailable() const
         {
