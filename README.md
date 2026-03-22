@@ -31,14 +31,17 @@ Includes:
 
 ## Features
 
--   `RingBuffer<T, Capacity, CacheLineSize>` template
--   Single-element API: `push()` / `pop()`
--   Bulk API: `write()` / `read()` / `peek()` / `skip()`
--   `ByteRingBuffer<N>` alias for byte-stream / IPC use
+-   Three lock-free ring buffer variants:
+    -   **SPSC** — single-producer single-consumer (wait-free)
+    -   **MPSC** — multiple-producer single-consumer
+    -   **SPMC** — single-producer multiple-consumer
+-   `RingBuffer<T, Capacity, CacheLineSize>` template (all variants)
+-   SPSC bulk API: `write()` / `read()` / `peek()` / `skip()`
+-   `ByteRingBuffer<N>` alias for byte-stream / IPC use (SPSC)
 -   Cache-line-padded control block prevents false sharing
     (configurable: 64 or 128 bytes)
 -   Designed for shared memory (contiguous layout, no pointers)
--   157 unit tests including multi-threaded stress tests
+-   193 unit tests including multi-threaded stress tests
 
 ## Dependencies
 
@@ -59,6 +62,36 @@ rb.push(42);
 
 int val;
 rb.pop(val);  // val == 42
+```
+
+### MPSC (multiple producers, single consumer)
+
+``` cpp
+#include <mpsc/RingBuffer.h>
+
+ouroboros::mpsc::RingBuffer<int, 1024> rb;
+
+// Thread-safe from multiple producers:
+rb.push(42);
+
+// Single consumer:
+int val;
+rb.pop(val);
+```
+
+### SPMC (single producer, multiple consumers)
+
+``` cpp
+#include <spmc/RingBuffer.h>
+
+ouroboros::spmc::RingBuffer<int, 1024> rb;
+
+// Single producer:
+rb.push(42);
+
+// Thread-safe from multiple consumers:
+int val;
+rb.pop(val);
 ```
 
 ## Building

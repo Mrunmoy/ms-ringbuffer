@@ -30,3 +30,5 @@ ctest --test-dir build --output-on-failure
 | `ByteRingBufferTest.cpp` | `ByteRingBuffer<N>` alias for IPC. Raw bytes, length-prefixed framing, variable-length messages, binary data with null bytes. |
 | `BoundaryTest.cpp` | Edge cases: capacity=1, capacity=2, empty/full underflow/overflow, exact capacity ops, zero-count no-ops, wraparound at exact boundary, reset mid-stream, cache line alignment, version macros. |
 | `ConcurrentTest.cpp` | Multi-threaded SPSC safety: int/uint64/float/char, struct with checksum, bulk batches, asymmetric batches, min capacity (max contention), large 256-byte struct (torn write detection), byte stream IPC, custom 128-byte cache line, 1M-element sustained throughput. |
+| `MpscRingBufferTest.cpp` | MPSC variant: single-threaded unit tests (push/pop, fill/drain, wraparound, reset, FIFO order), boundary cases (capacity=1, cache line 128), concurrent stress (2/4/8 producers, high contention, sustained throughput). |
+| `SpmcRingBufferTest.cpp` | SPMC variant: single-threaded unit tests (mirrors MPSC), concurrent stress (2/4/8 consumers, high contention, sustained throughput). |

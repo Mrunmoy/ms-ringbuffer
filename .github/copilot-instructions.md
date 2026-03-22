@@ -1,6 +1,9 @@
 # Copilot Instructions
 
-Header-only, lock-free SPSC (single-producer single-consumer) ring buffer for C++17. The entire library is a single header: `inc/spsc/RingBuffer.h`. Namespace is `ouroboros::spsc`.
+Header-only, lock-free ring buffer library for C++17 with three variants:
+- **SPSC** — `inc/spsc/RingBuffer.h` (`ouroboros::spsc`) — wait-free, bulk ops
+- **MPSC** — `inc/mpsc/RingBuffer.h` (`ouroboros::mpsc`) — CAS producers, push/pop only
+- **SPMC** — `inc/spmc/RingBuffer.h` (`ouroboros::spmc`) — CAS consumers, push/pop only
 
 ## Build commands
 
@@ -34,22 +37,18 @@ CMake options: `OUROBOROS_BUILD_EXAMPLES` (OFF), `OUROBOROS_BUILD_BENCHMARKS` (O
 
 ## Architecture
 
-- **`inc/spsc/RingBuffer.h`** — The entire library. Template class `RingBuffer<T, Capacity, CacheLineSize>` with `ByteRingBuffer<N>` alias for byte streams.
-- **Producer API**: `push()`, `write()`, `writeAvailable()`
-- **Consumer API**: `pop()`, `read()`, `peek()`, `skip()`, `readAvailable()`
+- **`inc/spsc/RingBuffer.h`** — SPSC variant. Wait-free. Full API: `push()`/`pop()`, bulk `write()`/`read()`/`peek()`/`skip()`. `ByteRingBuffer<N>` alias.
+- **`inc/mpsc/RingBuffer.h`** — MPSC variant. Per-slot sequence counters (Vyukov-style). Producers CAS on head. `push()`/`pop()` only.
+- **`inc/spmc/RingBuffer.h`** — SPMC variant. Mirror of MPSC. Consumers CAS on tail. `push()`/`pop()` only.
 - **ControlBlock** uses `alignas(CacheLineSize)` with manual padding to prevent false sharing between producer (`head`) and consumer (`tail`) atomics.
-- Head/tail are monotonically increasing `uint32_t` atomics, masked with `Capacity - 1` when indexing. Wraps naturally at 2^32.
+- Head/tail are monotonically increasing `uint32_t` atomics, masked with `Capacity - 1` when indexing.
 
 ### Design constraints
 
 - Capacity must be a power of 2 (enforced by `static_assert`).
 - Element type T must be trivially copyable (enforced by `static_assert`).
 - Not copyable or movable — designed for shared memory / mmap'd regions.
-- Uses strategic `memory_order` (acquire/release pattern, never `seq_cst`).
-
-### Planned expansion (FUTURE.md)
-
-MPSC, SPMC, and MPMC variants will live in separate namespaces (`ms::mpsc`, `ms::spmc`, `ms::mpmc`) and separate headers (`inc/mpsc/RingBuffer.h`, etc.).
+- SPSC uses acquire/release ordering (never `seq_cst`). MPSC/SPMC add `acq_rel` CAS.
 
 ## Key conventions
 

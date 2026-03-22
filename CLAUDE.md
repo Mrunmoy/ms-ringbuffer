@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Header-only, lock-free SPSC (single-producer single-consumer) ring buffer library for C++17. The entire implementation lives in a single header: `inc/spsc/RingBuffer.h`. Namespace is `ouroboros::spsc`.
+Header-only, lock-free ring buffer library for C++17 with three variants:
+- **SPSC** — `inc/spsc/RingBuffer.h` (namespace `ouroboros::spsc`) — wait-free, bulk ops
+- **MPSC** — `inc/mpsc/RingBuffer.h` (namespace `ouroboros::mpsc`) — CAS producers, push/pop only
+- **SPMC** — `inc/spmc/RingBuffer.h` (namespace `ouroboros::spmc`) — CAS consumers, push/pop only
 
 ## Build commands
 
@@ -50,7 +53,9 @@ ctest --test-dir build --output-on-failure
 
 ## Architecture
 
-- **`inc/spsc/RingBuffer.h`** — The entire library. Template class `RingBuffer<T, Capacity, CacheLineSize>` with `ByteRingBuffer<N>` alias.
+- **`inc/spsc/RingBuffer.h`** — SPSC variant. Wait-free, bulk ops (`write`/`read`/`peek`/`skip`). `ByteRingBuffer<N>` alias.
+- **`inc/mpsc/RingBuffer.h`** — MPSC variant. Per-slot sequence counters, CAS on head. Push/pop only.
+- **`inc/spmc/RingBuffer.h`** — SPMC variant. Mirror of MPSC, CAS on tail. Push/pop only.
 - **`test/`** — Google Test suite (gtest v1.14.0 vendored as submodule in `test/vendor/googletest`). Test binary: `ringbuffer_tests`.
 - **`bench/perf/`** — Google Benchmark performance tests (vendored in `bench/vendor/benchmark`).
 - **`bench/size/`** — sizeof/code-size measurement harness.
