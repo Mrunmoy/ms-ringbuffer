@@ -1,9 +1,9 @@
 # ouroboros
 
-[![Build](https://github.com/Mrunmoy/ouroboros/actions/workflows/ci.yml/badge.svg)](https://github.com/Mrunmoy/ouroboros/actions/workflows/ci.yml)
-[![Pages](https://github.com/Mrunmoy/ouroboros/actions/workflows/pages.yml/badge.svg)](https://github.com/Mrunmoy/ouroboros/actions/workflows/pages.yml)
-[![Coverage](https://img.shields.io/endpoint?url=https://mrunmoy.github.io/ouroboros/badges/coverage.json)](https://mrunmoy.github.io/ouroboros/coverage/)
-[![Dashboard](https://img.shields.io/badge/Dashboard-Live-darkblue?style=flat)](https://mrunmoy.github.io/ouroboros/)
+[![Build](https://github.com/Mrunmoy/Ouroboros/actions/workflows/ci.yml/badge.svg)](https://github.com/Mrunmoy/Ouroboros/actions/workflows/ci.yml)
+[![Pages](https://github.com/Mrunmoy/Ouroboros/actions/workflows/pages.yml/badge.svg)](https://github.com/Mrunmoy/Ouroboros/actions/workflows/pages.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://mrunmoy.github.io/Ouroboros/badges/coverage.json)](https://mrunmoy.github.io/Ouroboros/coverage/)
+[![Dashboard](https://img.shields.io/badge/Dashboard-Live-darkblue?style=flat)](https://mrunmoy.github.io/Ouroboros/)
 
 Lock-free ring buffer library for C++17 — SPSC, MPSC, and SPMC variants.
 
@@ -20,7 +20,7 @@ If you want to understand how the SPSC ring buffer is implemented (and why each 
 Performance, code size, and coverage metrics are automatically generated
 on every push to `main`.
 
-Live results: https://mrunmoy.github.io/ouroboros/
+Live results: https://mrunmoy.github.io/Ouroboros/
 
 Includes:
 
@@ -104,10 +104,10 @@ rb.pop(val);
 
 ``` bash
 # Library only (no tests):
-git clone https://github.com/Mrunmoy/ouroboros
+git clone https://github.com/Mrunmoy/Ouroboros
 
 # With tests:
-git clone --recursive https://github.com/Mrunmoy/ouroboros
+git clone --recursive https://github.com/Mrunmoy/Ouroboros
 ```
 
 ### Build script
@@ -137,7 +137,7 @@ cmake --build build -j$(nproc)
 ## Using as a submodule
 
 ``` bash
-git submodule add https://github.com/Mrunmoy/ouroboros vendor/ouroboros
+git submodule add https://github.com/Mrunmoy/Ouroboros vendor/ouroboros
 ```
 
 ``` cmake
