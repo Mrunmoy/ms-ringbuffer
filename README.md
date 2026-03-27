@@ -1,63 +1,17 @@
-# ouroboros
+# Ouroboros
 
-[![Build](https://github.com/Mrunmoy/Ouroboros/actions/workflows/ci.yml/badge.svg)](https://github.com/Mrunmoy/Ouroboros/actions/workflows/ci.yml)
-[![Pages](https://github.com/Mrunmoy/Ouroboros/actions/workflows/pages.yml/badge.svg)](https://github.com/Mrunmoy/Ouroboros/actions/workflows/pages.yml)
+[![CI](https://github.com/Mrunmoy/Ouroboros/actions/workflows/ci.yml/badge.svg)](https://github.com/Mrunmoy/Ouroboros/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://mrunmoy.github.io/Ouroboros/badges/coverage.json)](https://mrunmoy.github.io/Ouroboros/coverage/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Dashboard](https://img.shields.io/badge/Dashboard-Live-darkblue?style=flat)](https://mrunmoy.github.io/Ouroboros/)
 
-Lock-free ring buffer library for C++17 — SPSC, MPSC, and SPMC variants.
+Lock-free, cache-friendly ring buffers for C++17 in three flavors: SPSC, MPSC, and SPMC.
 
-Header-only. Cache-friendly. Generic over any trivially copyable type.
+Ouroboros is a header-only library built around a single template -- `RingBuffer<T, Capacity, CacheLineSize>` -- that works with any trivially copyable type. The control block separates head and tail onto distinct cache lines to eliminate false sharing, and the entire layout is pointer-free so it can live in shared memory.
 
-## Guided walkthrough
+## Quick Start
 
-If you want to understand how the SPSC ring buffer is implemented (and why each piece exists), start here:
-
-- [WalkthroughSPSC.md](WalkthroughSPSC.md)
-
-## Dashboard
-
-Performance, code size, and coverage metrics are automatically generated
-on every push to `main`.
-
-Live results: https://mrunmoy.github.io/Ouroboros/
-
-Includes:
-
--   SPSC / MPSC / SPMC throughput benchmarks
--   Items/sec and GiB/sec metrics
--   ARM code size (Cortex-M4, Cortex-A53, Cortex-R5)
--   Native code size report (`text`, `data`, `bss`)
--   `sizeof` footprint for multiple configurations
--   Test coverage report
-
-------------------------------------------------------------------------
-
-## Features
-
--   Three lock-free ring buffer variants:
-    -   **SPSC** — single-producer single-consumer (wait-free)
-    -   **MPSC** — multiple-producer single-consumer
-    -   **SPMC** — single-producer multiple-consumer
--   `RingBuffer<T, Capacity, CacheLineSize>` template (all variants)
--   SPSC bulk API: `write()` / `read()` / `peek()` / `skip()`
--   `ByteRingBuffer<N>` alias for byte-stream / IPC use (SPSC)
--   Cache-line-padded control block prevents false sharing
-    (configurable: 64 or 128 bytes)
--   Designed for shared memory (contiguous layout, no pointers)
--   193 unit tests including multi-threaded stress tests
-
-## Dependencies
-
--   **C++17** compiler (GCC 7+, Clang 5+, MSVC 2017+)
--   **CMake** 3.14+
--   **Python 3** (for build script, optional)
--   **Google Test** v1.14.0 (bundled as submodule under `test/vendor/`,
-    only needed for tests)
-
-## Quick start
-
-``` cpp
+```cpp
 #include <spsc/RingBuffer.h>
 
 ouroboros::spsc::RingBuffer<int, 1024> rb;
@@ -68,98 +22,123 @@ int val;
 rb.pop(val);  // val == 42
 ```
 
-### MPSC (multiple producers, single consumer)
+MPSC and SPMC follow the same interface -- just swap the header:
 
-``` cpp
-#include <mpsc/RingBuffer.h>
-
-ouroboros::mpsc::RingBuffer<int, 1024> rb;
-
-// Thread-safe from multiple producers:
-rb.push(42);
-
-// Single consumer:
-int val;
-rb.pop(val);
+```cpp
+#include <mpsc/RingBuffer.h>   // multiple producers, single consumer
+#include <spmc/RingBuffer.h>   // single producer, multiple consumers
 ```
 
-### SPMC (single producer, multiple consumers)
+## Variants
 
-``` cpp
-#include <spmc/RingBuffer.h>
+All three variants share the same template signature:
 
-ouroboros::spmc::RingBuffer<int, 1024> rb;
-
-// Single producer:
-rb.push(42);
-
-// Thread-safe from multiple consumers:
-int val;
-rb.pop(val);
+```cpp
+template <typename T, uint32_t Capacity, uint32_t CacheLineSize = 64>
+class RingBuffer;
 ```
 
-## Building
+`Capacity` must be a power of 2. `T` must be trivially copyable. Set `CacheLineSize` to 128 for Apple M-series and ARM big cores.
 
-### Clone
+| Concern | SPSC | MPSC / SPMC |
+|---|---|---|
+| Atomics per op | 1 load + 1 store | 1 CAS loop + sequence store |
+| Memory per slot | `sizeof(T)` | `sizeof(atomic<uint32_t>) + sizeof(T)` |
+| Bulk ops | Yes (`write`/`read`/`peek`/`skip`, memcpy path) | Not available |
+| Wait-free? | Yes | CAS retry loop, lock-free but not wait-free |
 
-``` bash
-# Library only (no tests):
-git clone https://github.com/Mrunmoy/Ouroboros
+The SPSC variant also provides `ByteRingBuffer<N>`, a convenience alias for byte-stream and IPC use cases.
 
-# With tests:
-git clone --recursive https://github.com/Mrunmoy/Ouroboros
-```
+## Architecture
 
-### Build script
+📐 **[View SPSC ring buffer layout diagram](docs/diagrams/spsc-ring-buffer.excalidraw)** *(open with [excalidraw.com](https://excalidraw.com))*
 
-``` bash
-python3 build.py              # build only
-python3 build.py -c           # clean build
-python3 build.py -t           # build + run tests
-python3 build.py -e           # build + examples
-python3 build.py -c -t -e     # clean build + tests + examples
-```
+The ring uses power-of-two masking on monotonically increasing head/tail counters. The SPSC variant achieves wait-free progress with a single `acquire` load and a single `release` store per operation. MPSC and SPMC use Vyukov-style per-slot sequence counters so that the contended side (multiple producers or multiple consumers) coordinates through CAS on the shared index while the uncontended side stays single-threaded.
 
-### CMake directly
+For a detailed implementation walkthrough, see [WalkthroughSPSC.md](WalkthroughSPSC.md).
 
-``` bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j$(nproc)
+## Performance
 
-# Run tests:
-ctest --test-dir build --output-on-failure
+The [live dashboard](https://mrunmoy.github.io/Ouroboros/) is updated on every push to `main` and reports:
 
-# Build examples:
-cmake -B build -DOUROBOROS_BUILD_EXAMPLES=ON
-cmake --build build -j$(nproc)
-```
+- SPSC, MPSC, and SPMC throughput (items/sec, GiB/sec)
+- ARM cross-compiled code size for Cortex-M4, Cortex-A53, and Cortex-R5
+- Native code size breakdown (`text`, `data`, `bss`)
+- `sizeof` footprint across multiple configurations
+- Line-level test coverage
 
-## Using as a submodule
+## Platform Support
 
-``` bash
+| Compiler | Minimum Version | Standard |
+|---|---|---|
+| GCC | 7+ | C++17 |
+| Clang | 5+ | C++17 |
+| MSVC | 2017+ | C++17 |
+
+ARM targets (Cortex-M4, A53, R5) are tracked for code size in CI but not tested at runtime.
+
+## Installation
+
+Ouroboros is header-only. The simplest path is copying `inc/spsc/`, `inc/mpsc/`, and `inc/spmc/` into your project's include tree.
+
+**As a CMake subdirectory:**
+
+```bash
 git submodule add https://github.com/Mrunmoy/Ouroboros vendor/ouroboros
 ```
 
-``` cmake
+```cmake
 add_subdirectory(vendor/ouroboros)
 target_link_libraries(your_target PRIVATE ouroboros)
 ```
 
-Tests and examples are not built when used as a submodule.
+Tests and examples are automatically disabled when Ouroboros is consumed as a subdirectory.
 
-## Project structure
+## Building from Source
 
-    inc/spsc/RingBuffer.h    # the library (single header)
-    test/                    # unit tests (see test/README.md)
-    example/                 # usage examples (see example/README.md)
-    build.py                 # build script
-    LICENSE                  # MIT
+```bash
+# Clone with test dependencies:
+git clone --recursive https://github.com/Mrunmoy/Ouroboros
+cd Ouroboros
 
-## Further reading
+# Build script (recommended):
+python3 build.py -t           # build + run all tests
+python3 build.py -e           # build + examples
+python3 build.py -c -t -e    # clean build + tests + examples
 
--   [test/README.md](test/README.md) - test organization and how to run
--   [example/README.md](example/README.md) - example programs
+# Or use CMake directly:
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+ctest --test-dir build --output-on-failure
+```
+
+The test suite contains 109 unit tests including multi-threaded stress tests. Google Test 1.14.0 is vendored as a submodule under `test/vendor/`.
+
+## Project Layout
+
+```
+inc/
+  spsc/RingBuffer.h          # SPSC ring buffer (header-only)
+  mpsc/RingBuffer.h          # MPSC ring buffer (header-only)
+  spmc/RingBuffer.h          # SPMC ring buffer (header-only)
+test/                         # 109 unit tests (see test/README.md)
+example/                      # Usage examples (see example/README.md)
+bench/                        # Throughput and code-size benchmarks
+docs/diagrams/                # Architecture diagrams
+scripts/                      # CI and dashboard generation
+build.py                      # Build driver script
+WalkthroughSPSC.md            # Guided SPSC implementation walkthrough
+FUTURE.md                     # Roadmap
+```
+
+## Documentation
+
+- [WalkthroughSPSC.md](WalkthroughSPSC.md) -- step-by-step guide to the SPSC implementation
+- [inc/mpsc/DESIGN.md](inc/mpsc/DESIGN.md) -- MPSC design rationale
+- [inc/spmc/DESIGN.md](inc/spmc/DESIGN.md) -- SPMC design rationale
+- [doc/architecture-guide.md](doc/architecture-guide.md) -- architecture guide and diagram conventions
+- [FUTURE.md](FUTURE.md) -- planned work and open questions
 
 ## License
 
-MIT - see [LICENSE](LICENSE).
+MIT -- see [LICENSE](LICENSE).
