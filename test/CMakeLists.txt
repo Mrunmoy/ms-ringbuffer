@@ -11,6 +11,8 @@ endif()
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(vendor/googletest)
 
+find_package(Threads REQUIRED)
+
 add_executable(ringbuffer_tests
     PodRingBufferTest.cpp
     StructRingBufferTest.cpp
@@ -20,7 +22,7 @@ add_executable(ringbuffer_tests
     MpscRingBufferTest.cpp
     SpmcRingBufferTest.cpp
 )
-target_link_libraries(ringbuffer_tests PRIVATE ouroboros GTest::gtest_main pthread)
+target_link_libraries(ringbuffer_tests PRIVATE ouroboros GTest::gtest_main Threads::Threads)
 
 include(GoogleTest)
 gtest_discover_tests(ringbuffer_tests)
