@@ -51,7 +51,7 @@ The SPSC variant also provides `ByteRingBuffer<N>`, a convenience alias for byte
 
 ## Architecture
 
-📐 **[View SPSC ring buffer layout diagram](docs/diagrams/spsc-ring-buffer.excalidraw)** *(open with [excalidraw.com](https://excalidraw.com))*
+![SPSC Ring Buffer Layout](docs/diagrams/spsc-ring-buffer.png)
 
 The ring uses power-of-two masking on monotonically increasing head/tail counters. The SPSC variant achieves wait-free progress with a single `acquire` load and a single `release` store per operation. MPSC and SPMC use Vyukov-style per-slot sequence counters so that the contended side (multiple producers or multiple consumers) coordinates through CAS on the shared index while the uncontended side stays single-threaded.
 

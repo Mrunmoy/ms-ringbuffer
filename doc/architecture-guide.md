@@ -19,7 +19,7 @@ Ouroboros requires no dynamic allocation, no locks, and no system calls on the f
 
 A ring buffer is a fixed-size array used as a circular queue. Two cursors -- **head** (write position) and **tail** (read position) -- chase each other around the array. The producer advances head; the consumer advances tail. When a cursor reaches the end of the array it wraps back to the beginning, creating the illusion of an infinite stream over finite memory.
 
-📐 **[View SPSC Ring Buffer diagram](../docs/diagrams/spsc-ring-buffer.excalidraw)** *(open with [excalidraw.com](https://excalidraw.com))*
+![SPSC Ring Buffer Layout](../docs/diagrams/spsc-ring-buffer.png)
 
 The diagram above shows the physical layout: head and tail are monotonically increasing 32-bit integers that are masked (`index & (Capacity - 1)`) to produce an array offset. Because the capacity is always a power of two, this masking is a single bitwise AND -- no modulo division required. The difference `head - tail` gives the number of elements currently in the buffer, even when both cursors have wrapped past `UINT32_MAX`, thanks to unsigned arithmetic.
 
